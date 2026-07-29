@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.NEW_DATABASE_URI || process.env.DATABASE_URI || process.env.MONGODB_URI;
+const MONGODB_URI = process.env.POSTPIPE_DB_URI || process.env.NEW_DATABASE_URI || process.env.DATABASE_URI || process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
     throw new Error(
-        'Please define the DATABASE_URI environment variable inside .env'
+        'Please define the POSTPIPE_DB_URI environment variable inside .env'
     );
 }
 

@@ -194,7 +194,9 @@ export const SidebarLink = ({
             {...customProps}
             {...rest}
         >
-            {link.icon}
+            <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+                {link.icon}
+            </div>
             <motion.span
                 animate={{
                     display: animate ? (open ? "inline-block" : "none") : "inline-block",

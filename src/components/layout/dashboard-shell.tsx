@@ -22,6 +22,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
+import dashboardIconData from "../../../public/logos/dashboard.json";
+import backendSystemsIconData from "../../../public/logos/backendSystems.json";
+import formsIconData from "../../../public/logos/forms.json";
+import connectorIconData from "../../../public/logos/connector.json";
+import serverIconData from "../../../public/logos/Server.json";
+import logoutIconData from "../../../public/logos/Logout.json";
+import { AnimatedSidebarIcon } from "@/components/ui/animated-sidebar-icon";
 
 export default function DashboardShell({
     children,
@@ -47,33 +54,34 @@ export default function DashboardShell({
         {
             label: "Overview",
             href: "/dashboard",
-            icon: <LayoutGrid className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+            icon: <AnimatedSidebarIcon animationData={dashboardIconData} className="h-8 w-8 group-hover/sidebar:scale-110 transition-all duration-200" />
         },
         {
             label: "Backend Systems",
             href: "/dashboard/systems",
-            icon: <Server className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+            icon: (
+                <div className="flex flex-col -space-y-[11px] justify-center items-center h-8 w-8 group-hover/sidebar:scale-110 transition-all duration-200">
+                    <AnimatedSidebarIcon animationData={backendSystemsIconData} className="h-[22px] w-[22px]" />
+                    <AnimatedSidebarIcon animationData={backendSystemsIconData} className="h-[22px] w-[22px]" />
+                </div>
+            )
         },
         {
             label: "Forms",
             href: "/dashboard/forms",
-            icon: <FileText className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+            icon: <AnimatedSidebarIcon animationData={formsIconData} className="h-8 w-8 group-hover/sidebar:scale-110 transition-all duration-200" />
         },
         {
             label: "Connectors",
             href: "/dashboard/connectors",
-            icon: <Key className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+            icon: <AnimatedSidebarIcon animationData={connectorIconData} className="h-8 w-8 group-hover/sidebar:scale-110 transition-all duration-200" />
         },
         {
             label: "Databases",
             href: "/dashboard/database",
-            icon: <Database className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+            icon: <AnimatedSidebarIcon animationData={serverIconData} className="h-8 w-8 group-hover/sidebar:scale-110 transition-all duration-200" />
         },
-        {
-            label: "API & Piko AI",
-            href: "/dashboard/api",
-            icon: <Terminal className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-        },
+
     ];
 
     const bottomLinks = [
@@ -84,10 +92,10 @@ export default function DashboardShell({
                 <img
                     src={user.image}
                     alt={user.name}
-                    className="h-5 w-5 flex-shrink-0 rounded-full object-cover"
+                    className="h-5 w-5 flex-shrink-0 rounded-full object-cover group-hover/sidebar:scale-110 transition-all duration-200"
                 />
             ) : (
-                <UserCog className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+                <UserCog className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0 group-hover/sidebar:scale-110 transition-all duration-200" />
             ),
         },
     ];
@@ -118,7 +126,7 @@ export default function DashboardShell({
                                 link={{
                                     label: "Logout",
                                     href: "#",
-                                    icon: <LogOut className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+                                    icon: <AnimatedSidebarIcon animationData={logoutIconData} className="h-8 w-8 group-hover/sidebar:scale-110 transition-all duration-200" />
                                 }}
                             />
                         </div>
@@ -130,9 +138,9 @@ export default function DashboardShell({
                                     label: open ? "Collapse Sidebar" : "Expand Sidebar",
                                     href: "#",
                                     icon: open ? (
-                                        <ArrowLeftToLine className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+                                        <ArrowLeftToLine className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0 group-hover/sidebar:scale-110 transition-all duration-200" />
                                     ) : (
-                                        <ArrowRightFromLine className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+                                        <ArrowRightFromLine className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0 group-hover/sidebar:scale-110 transition-all duration-200" />
                                     )
                                 }}
                             />
@@ -143,7 +151,7 @@ export default function DashboardShell({
 
             {/* Main Content Area */}
             <div className="flex flex-1 overflow-hidden">
-                <div className="p-2 pt-20 md:p-10 md:pt-10 md:rounded-tl-2xl md:border border-neutral-200 dark:border-neutral-700 md:bg-white md:dark:bg-neutral-900 flex flex-col gap-2 flex-1 w-full h-full overflow-y-auto overflow-x-hidden">
+                <div className="p-2 pt-20 md:p-10 md:pt-10 md:bg-white md:dark:bg-neutral-900 flex flex-col gap-2 flex-1 w-full h-full overflow-y-auto overflow-x-hidden">
                     {children}
                 </div>
             </div>

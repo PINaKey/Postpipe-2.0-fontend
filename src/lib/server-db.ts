@@ -121,7 +121,7 @@ export interface UserAuthPresetsDocument {
 // --- Persistence ---
 // NOTE: We check this lazily or let it fail at runtime in functions to allow build-time execution without env vars.
 
-const uri = process.env.MONGODB_URI;
+const uri = process.env.POSTPIPE_DB_URI || process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB_NAME || 'postpipe_core';
 const options = {};
 
