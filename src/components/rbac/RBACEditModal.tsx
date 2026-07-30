@@ -92,8 +92,8 @@ export function RBACEditModal({ isOpen, onClose, system, forms }: RBACEditModalP
                                 {forms.length === 0 ? (
                                     <p className="text-sm text-neutral-500 text-center py-4">No forms available in your workspace yet.</p>
                                 ) : (
-                                    Object.entries(groupedForms).map(([groupName, groupForms]) => {
-                                        const allSelected = groupForms.every(f => managedForms.includes(f.id));
+                                    (Object.entries(groupedForms) as [string, any[]][]).map(([groupName, groupForms]) => {
+                                        const allSelected = groupForms.every((f: any) => managedForms.includes(f.id));
                                         return (
                                             <div key={groupName} className="space-y-2">
                                                 <div className="flex items-center gap-2 pb-1 border-b border-neutral-200 dark:border-white/10">
@@ -106,7 +106,7 @@ export function RBACEditModal({ isOpen, onClose, system, forms }: RBACEditModalP
                                                     <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">{groupName}</span>
                                                 </div>
                                                 <div className="pl-6 space-y-1">
-                                                    {groupForms.map(f => (
+                                                    {groupForms.map((f: any) => (
                                                         <label key={f.id} className="flex items-center gap-3 p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-md cursor-pointer transition-colors">
                                                             <input
                                                                 type="checkbox"

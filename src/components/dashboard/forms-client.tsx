@@ -48,6 +48,7 @@ import {
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
+    TooltipPortal,
 } from '@/components/ui/tooltip';
 import {
     Select,
@@ -96,6 +97,7 @@ import { generateSnippets } from '@/lib/snippet-generator';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { AnimatedEditIcon } from '@/components/ui/animated-edit-icon';
 import {
     deleteFormAction,
     duplicateFormAction,
@@ -958,6 +960,30 @@ export default function FormsClient(props: FormsClientProps) {
                                     </AlertDialogContent>
                                 </AlertDialog>
                             )}
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            size='icon'
+                                            variant='ghost'
+                                            className='h-7 w-7 rounded-md text-neutral-400 dark:text-white/25 hover:text-neutral-700 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/10 transition-all'
+                                            onClick={(e) => {
+                                                router.push(
+                                                    `/dashboard/forms/${form.id}/edit`,
+                                                );
+                                                e.stopPropagation();
+                                            }}
+                                        >
+                                            <AnimatedEditIcon className='h-[19px] w-[19px]' />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipPortal>
+                                        <TooltipContent>
+                                            Edit Form
+                                        </TooltipContent>
+                                    </TooltipPortal>
+                                </Tooltip>
+                            </TooltipProvider>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button
