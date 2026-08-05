@@ -61,8 +61,8 @@ export function AnimatedSidebarIcon({
         onComplete={() => {
           isPlayingRef.current = false;
         }}
-        // Force the icon to be white using CSS filters
-        className="w-full h-full brightness-0 invert"
+        // Force the icon to be dark in light mode and white in dark mode via CSS filters
+        className="w-full h-full brightness-0 dark:invert transition-all duration-200"
       />
     </div>
   );
