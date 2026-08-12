@@ -293,20 +293,22 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                             </div>
                                         </a>
 
-                                        <a 
-                                            href="https://portal.azure.com/#create/Microsoft.WebSite" 
-                                            target="_blank" rel="noopener noreferrer" 
-                                            className="group relative flex flex-col items-center gap-4 rounded-xl border bg-card hover:bg-muted/30 hover:border-[#0078D4]/30 p-6 text-center transition-all hover:-translate-y-1 overflow-hidden"
-                                        >
-                                            <div className="absolute inset-0 bg-gradient-to-b from-[#0078D4]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#0078D4] text-white transition-transform group-hover:scale-110 shadow-lg shadow-[#0078D4]/20">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25" /><line x1="8" y1="16" x2="8.01" y2="16" /><line x1="8" y1="20" x2="8.01" y2="20" /><line x1="12" y1="18" x2="12.01" y2="18" /><line x1="12" y1="22" x2="12.01" y2="22" /><line x1="16" y1="16" x2="16.01" y2="16" /><line x1="16" y1="20" x2="16.01" y2="20" /></svg>
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-foreground">Deploy to Azure</p>
-                                                <p className="text-xs text-muted-foreground mt-1">Manual Docker deployment</p>
-                                            </div>
-                                        </a>
+                                        {connectorType === "fastapi" && (
+                                            <a 
+                                                href="https://app.rivendeploy.com/new?repo=https%3A%2F%2Fgithub.com%2FPostPipe%2Fpostpipe-connector-fastapi" 
+                                                target="_blank" rel="noopener noreferrer" 
+                                                className="group relative flex flex-col items-center gap-4 rounded-xl border bg-card hover:bg-muted/30 hover:border-[#F97316]/30 p-6 text-center transition-all hover:-translate-y-1 overflow-hidden"
+                                            >
+                                                <div className="absolute inset-0 bg-gradient-to-b from-[#F97316]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F97316] text-white transition-transform group-hover:scale-110 shadow-lg shadow-[#F97316]/20">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-foreground">Deploy with Riven</p>
+                                                    <p className="text-xs text-muted-foreground mt-1">Managed Cloud Deployment</p>
+                                                </div>
+                                            </a>
+                                        )}
                                     </div>
 
                                     <div className="flex gap-3 pt-6 border-t">
