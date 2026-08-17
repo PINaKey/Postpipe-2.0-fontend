@@ -20,7 +20,9 @@ import {
   deleteRBACSystem,
   deleteAuthPreset,
   deleteSystem,
-  System
+  System,
+  updateConnectorUrl,
+  updateConnectorStatus
 } from '../../lib/server-db';
 import { ensureFullUrl } from '../../lib/utils';
 
@@ -396,4 +398,51 @@ export async function updateRBACSystemSettingsAction(systemId: string, updates: 
   const dbModule = await import('../../lib/server-db');
   await dbModule.updateRBACSystem(systemId, session.userId, updates);
   return { success: true };
+}
+
+export async function updateConnectorUrlAction(id: string, url: string) {
+  const session = await getSession();
+  if (!session || !session.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  await updateConnectorUrl(id, url, session.userId);
+  return { success: true };
+}
+
+export async function verifyConnectorAction(id: string) {
+  const session = await getSession();
+  if (!session || !session.userId) throw new Error("Unauthorized");
+
+  const connector = await getConnector(id);
+  if (!connector) return { success: false, error: "Connector not found" };
+
+  try {
+    const connectorUrl = ensureFullUrl(connector.url);
+    const res = await fetch(`${connectorUrl}/api/postpipe/health`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${connector.secret}`
+      }
+    });
+
+    if (res.ok) {
+      await updateConnectorStatus(id, "Verified", session.userId);
+      return { success: true };
+    } else {
+      let errorDetails = "";
+      try {
+        const text = await res.text();
+        errorDetails = text ? ` (${text.substring(0, 100)})` : "";
+      } catch (e) {}
+      
+      if (res.status === 401 || res.status === 403) {
+          return { success: false, error: `Authentication failed (HTTP ${res.status}). Please ensure POSTPIPE_CONNECTOR_SECRET is set correctly in your deployment environment.` };
+      }
+      
+      return { success: false, error: `Connector responded with HTTP ${res.status} ${res.statusText}${errorDetails}. Health check failed.` };
+    }
+  } catch (e: any) {
+    return { success: false, error: `Could not reach connector. Ensure the URL is correct and deployed. Error: ${e.message}` };
+  }
 }

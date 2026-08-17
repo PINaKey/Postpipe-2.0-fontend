@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
 import DashboardShell from '@/components/layout/dashboard-shell';
+import { VersionUpdateModal } from '@/components/dashboard/version-update-modal';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -11,5 +12,10 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <DashboardShell>{children}</DashboardShell>;
+  return (
+    <DashboardShell>
+      {children}
+      <VersionUpdateModal />
+    </DashboardShell>
+  );
 }

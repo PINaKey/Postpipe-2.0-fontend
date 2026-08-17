@@ -12,12 +12,12 @@ import {
 import {
     Eye, EyeOff, Copy, RefreshCw, AlertTriangle,
     CheckCircle2, Trash2, Database, Globe, Lock, Zap,
-    Plus, Shield, Server, Activity
+    Plus, Shield, Server, Activity, Edit2
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { registerConnectorAction } from "@/app/actions/register";
-import { deleteConnectorAction } from "@/app/actions/dashboard";
+import { deleteConnectorAction, updateConnectorUrlAction, verifyConnectorAction } from "@/app/actions/dashboard";
 
 type Connector = {
     id: string;
@@ -45,6 +45,46 @@ export default function ConnectorsClient({ initialConnectors, databaseConfig }: 
     const [envPrefix, setEnvPrefix] = useState("");
     const [targetDatabase, setTargetDatabase] = useState("default");
     const [isRegistering, setIsRegistering] = useState(false);
+    const [editingUrlId, setEditingUrlId] = useState<string | null>(null);
+    const [editUrlValue, setEditUrlValue] = useState("");
+    const [isUpdatingUrl, setIsUpdatingUrl] = useState(false);
+    const [verifyingIds, setVerifyingIds] = useState<Record<string, boolean>>({});
+
+    const handleVerifyConnector = async (id: string) => {
+        setVerifyingIds(prev => ({ ...prev, [id]: true }));
+        try {
+            const res = await verifyConnectorAction(id) as any;
+            if (res.success) {
+                setConnectors(prev => prev.map(c => c.id === id ? { ...c, status: "Verified" } : c));
+                toast({ title: "Verified successfully", description: "Your connector is reachable and authenticated." });
+            } else {
+                toast({ title: "Verification Failed", description: res.error || "Could not verify connector.", variant: "destructive" });
+            }
+        } catch {
+            toast({ title: "Error", description: "An unexpected error occurred during verification.", variant: "destructive" });
+        } finally {
+            setVerifyingIds(prev => ({ ...prev, [id]: false }));
+        }
+    };
+
+    const handleUpdateUrl = async (id: string) => {
+        if (!editUrlValue) return;
+        setIsUpdatingUrl(true);
+        try {
+            const res = await updateConnectorUrlAction(id, editUrlValue) as any;
+            if (res.error) {
+                toast({ title: "Update Failed", description: res.error, variant: "destructive" });
+            } else {
+                setConnectors(prev => prev.map(c => c.id === id ? { ...c, url: editUrlValue } : c));
+                setEditingUrlId(null);
+                toast({ title: "URL Updated", description: "The connector URL has been successfully updated." });
+            }
+        } catch {
+            toast({ title: "Error", description: "Failed to update connector URL", variant: "destructive" });
+        } finally {
+            setIsUpdatingUrl(false);
+        }
+    };
 
     const toggleSecret = (id: string) => {
         setVisibleSecrets(prev => ({ ...prev, [id]: !prev[id] }));
@@ -245,8 +285,20 @@ export default function ConnectorsClient({ initialConnectors, databaseConfig }: 
                                                 : "text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-500/25 bg-amber-50 dark:bg-amber-500/10"
                                         )}>
                                             {isVerified ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
-                                            {connector.status}
+                                            {connector.status || "Not Verified"}
                                         </span>
+                                        {!isVerified && (
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                className="h-6 px-2 text-[10px] uppercase tracking-wider font-bold ml-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-500/30"
+                                                onClick={() => handleVerifyConnector(connector.id)}
+                                                disabled={verifyingIds[connector.id]}
+                                            >
+                                                {verifyingIds[connector.id] ? <RefreshCw className="h-3 w-3 animate-spin mr-1" /> : <Shield className="h-3 w-3 mr-1" />}
+                                                Verify Now
+                                            </Button>
+                                        )}
                                         {connector.targetDatabase && (
                                             <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest border text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/25 bg-blue-50 dark:bg-blue-500/10">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
@@ -268,6 +320,49 @@ export default function ConnectorsClient({ initialConnectors, databaseConfig }: 
                                         <div className="flex items-center gap-2.5 rounded-xl border border-border bg-muted/50 px-3.5 py-2.5">
                                             <Globe className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                                             <span className="text-sm font-mono text-muted-foreground truncate flex-1">{connector.url}</span>
+                                            
+                                            <Dialog open={editingUrlId === connector.id} onOpenChange={(open) => {
+                                                if (open) {
+                                                    setEditUrlValue(connector.url);
+                                                    setEditingUrlId(connector.id);
+                                                } else {
+                                                    setEditingUrlId(null);
+                                                }
+                                            }}>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground">
+                                                        <Edit2 className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Edit Deployment URL</DialogTitle>
+                                                        <DialogDescription>Update the deployment URL for {connector.name}. Make sure the new URL is fully accessible.</DialogDescription>
+                                                    </DialogHeader>
+                                                    <div className="grid gap-4 py-4">
+                                                        <div className="grid gap-2">
+                                                            <Label htmlFor="edit-url">New Deployment URL</Label>
+                                                            <Input 
+                                                                id="edit-url" 
+                                                                placeholder="https://new-url.vercel.app" 
+                                                                value={editUrlValue} 
+                                                                onChange={(e) => setEditUrlValue(e.target.value)} 
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter') {
+                                                                        handleUpdateUrl(connector.id);
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <DialogFooter>
+                                                        <Button variant="outline" onClick={() => setEditingUrlId(null)}>Cancel</Button>
+                                                        <Button onClick={() => handleUpdateUrl(connector.id)} disabled={isUpdatingUrl}>
+                                                            {isUpdatingUrl ? "Updating..." : "Save Changes"}
+                                                        </Button>
+                                                    </DialogFooter>
+                                                </DialogContent>
+                                            </Dialog>
                                         </div>
                                     </div>
 

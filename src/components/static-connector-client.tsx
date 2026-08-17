@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
     Check, Copy, Terminal, ArrowRight, ShieldCheck,
     AlertCircle, Eye, EyeOff, Loader2, Zap, Database, Server, Lock,
-    ChevronRight, Activity, Cpu, Key, FileCode, CheckCircle2
+    ChevronRight, Activity, Cpu, Key, FileCode, CheckCircle2, RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,13 +14,14 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
 import NewFormClient from "@/components/dashboard/new-form-client";
-import { registerConnectorAction, finalizeConnectorAction } from "@/app/actions/register";
+import { registerConnectorAction, finalizeConnectorAction, getUserGitHubInstallations } from "@/app/actions/register";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
 
 const STEPS = [
     { id: 1, label: "Generate", icon: Zap, desc: "Create secure credentials" },
-    { id: 2, label: "Deploy", icon: Server, desc: "Push to the cloud" },
-    { id: 3, label: "Connect", icon: Database, desc: "Link your instance" },
+    { id: 2, label: "Setup Repo", icon: FileCode, desc: "Create GitHub repository" },
+    { id: 3, label: "Deploy", icon: Server, desc: "Push to the cloud" },
+    { id: 4, label: "Connect", icon: Database, desc: "Link your instance" },
 ];
 
 export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liveConnectorsCount?: number }) {
@@ -31,32 +32,142 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
     const [connectorName, setConnectorName] = useState("");
     const [connectorType, setConnectorType] = useState<"express" | "fastapi">("express");
     const [connectorData, setConnectorData] = useState<{ id: string; secret: string } | null>(null);
+    const [repoUrl, setRepoUrl] = useState<string>("");
     const [deploymentUrl, setDeploymentUrl] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [isCreatingRepo, setIsCreatingRepo] = useState(false);
+    const [existingInstallationId, setExistingInstallationId] = useState<string | null>(null);
     const [showSecret, setShowSecret] = useState(false);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [isDashboardReady, setIsDashboardReady] = useState(false);
 
+    // Load persisted state on mount and when user session resolves
     useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const getStored = (key: string) => {
+            if (user?.email) {
+                const userVal = localStorage.getItem(`pp_${key}_${user.email}`);
+                if (userVal !== null) return userVal;
+            }
+            return localStorage.getItem(`pp_${key}_draft`);
+        };
+
+        const storedName = getStored("connector_name");
+        const storedStep = getStored("setup_step");
+        const storedType = getStored("connector_type");
+        const storedData = getStored("connector_data");
+        const storedRepo = getStored("repo_url");
+        const storedDeploymentUrl = getStored("deployment_url");
+
+        if (storedName) setConnectorName(storedName);
+        if (storedType) setConnectorType(storedType as "express" | "fastapi");
+        if (storedStep) {
+            const parsed = parseInt(storedStep, 10);
+            if (!isNaN(parsed) && parsed >= 1 && parsed <= 5) {
+                setStep(parsed);
+                if (parsed === 5) setIsDashboardReady(true);
+            }
+        }
+        if (storedData) {
+            try {
+                setConnectorData(JSON.parse(storedData));
+            } catch (e) {
+                console.error("Failed to parse stored connector data", e);
+            }
+        }
+        if (storedRepo) setRepoUrl(storedRepo);
+        if (storedDeploymentUrl) setDeploymentUrl(storedDeploymentUrl);
+
+        // Check if user already installed GitHub App
         if (user?.email) {
-            const storedStep = localStorage.getItem(`pp_setup_step_${user.email}`);
-            const storedType = localStorage.getItem(`pp_connector_type_${user.email}`);
-            const storedData = localStorage.getItem(`pp_connector_data_${user.email}`);
-            if (storedStep) setStep(parseInt(storedStep));
-            if (storedType) setConnectorType(storedType as "express" | "fastapi");
-            if (storedData) setConnectorData(JSON.parse(storedData));
-            if (storedStep === "4") setIsDashboardReady(true);
+            getUserGitHubInstallations().then(res => {
+                if (res.success && res.installations && res.installations.length > 0) {
+                    setExistingInstallationId(res.installations[0].installationId.toString());
+                }
+            });
         }
     }, [user]);
 
-    const saveState = (newStep: number, data?: any) => {
-        if (user?.email) {
-            localStorage.setItem(`pp_setup_step_${user.email}`, newStep.toString());
-            localStorage.setItem(`pp_connector_type_${user.email}`, connectorType);
-            if (data) localStorage.setItem(`pp_connector_data_${user.email}`, JSON.stringify(data));
+    // Handle return from GitHub App installation redirect
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const instId = params.get("installation_id");
+            if (instId && step === 2 && connectorData && !isCreatingRepo) {
+                // Remove param from URL without refreshing
+                window.history.replaceState({}, document.title, window.location.pathname);
+                setExistingInstallationId(instId);
+                handleCreateRepo(instId);
+            }
+        }
+    }, [step, connectorData]);
+
+    const persistItem = (key: string, value: string | null) => {
+        if (typeof window === "undefined") return;
+        const keysToUpdate = user?.email
+            ? [`pp_${key}_${user.email}`, `pp_${key}_draft`]
+            : [`pp_${key}_draft`];
+
+        keysToUpdate.forEach(k => {
+            if (value === null) {
+                localStorage.removeItem(k);
+            } else {
+                localStorage.setItem(k, value);
+            }
+        });
+    };
+
+    const handleNameChange = (name: string) => {
+        setConnectorName(name);
+        persistItem("connector_name", name);
+    };
+
+    const handleTypeChange = (type: "express" | "fastapi") => {
+        setConnectorType(type);
+        persistItem("connector_type", type);
+    };
+
+    const handleDeploymentUrlChange = (url: string) => {
+        setDeploymentUrl(url);
+        persistItem("deployment_url", url);
+    };
+
+    const saveState = (newStep: number, data?: any, repo?: string, name?: string) => {
+        persistItem("setup_step", newStep.toString());
+        persistItem("connector_type", connectorType);
+        if (name !== undefined) {
+            persistItem("connector_name", name);
+            setConnectorName(name);
+        } else if (connectorName) {
+            persistItem("connector_name", connectorName);
+        }
+        if (data) {
+            persistItem("connector_data", JSON.stringify(data));
+            setConnectorData(data);
+        }
+        if (repo !== undefined) {
+            persistItem("repo_url", repo);
+            setRepoUrl(repo);
         }
         setStep(newStep);
-        if (data) setConnectorData(data);
+    };
+
+    const clearWizardState = () => {
+        const keys = ["setup_step", "connector_type", "connector_name", "connector_data", "repo_url", "deployment_url"];
+        keys.forEach(k => {
+            if (user?.email) localStorage.removeItem(`pp_${k}_${user.email}`);
+            localStorage.removeItem(`pp_${k}_draft`);
+        });
+        setStep(1);
+        setConnectorName("");
+        setConnectorType("express");
+        setConnectorData(null);
+        setRepoUrl("");
+        setDeploymentUrl("");
+        setIsDashboardReady(false);
+        setShowSecret(false);
+        toast({ title: "Draft Cleared", description: "Form reset to new connector." });
     };
 
     const scrollToSetup = () => {
@@ -67,30 +178,53 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
     };
 
     const handleGenerate = async () => {
-        if (!connectorName) {
+        if (!connectorName.trim()) {
             toast({ title: "Name Required", description: "Please give your connector a name.", variant: "destructive" });
             return;
         }
         setIsLoading(true);
         const fd = new FormData();
-        fd.append("name", connectorName);
+        fd.append("name", connectorName.trim());
         const res = await registerConnectorAction(fd);
         setIsLoading(false);
         if (res.success && res.connectorId && res.connectorSecret) {
-            saveState(2, { id: res.connectorId, secret: res.connectorSecret });
-            toast({ title: "Credentials Generated", description: "Now deploy your connector." });
+            saveState(2, { id: res.connectorId, secret: res.connectorSecret }, undefined, connectorName.trim());
+            toast({ title: "Credentials Generated", description: "Now setup your GitHub repository." });
         } else {
             toast({ title: "Error", description: res.error || "Failed to generate", variant: "destructive" });
         }
     };
 
+    const handleCreateRepo = async (installationId: string) => {
+        setIsCreatingRepo(true);
+        try {
+            const res = await fetch('/api/github/create-repo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ installationId, type: connectorType, customName: connectorName.trim() })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setRepoUrl(data.repoUrl);
+                saveState(3, undefined, data.repoUrl);
+                toast({ title: "Repository Created!", description: "Your new connector code is ready on GitHub." });
+            } else {
+                toast({ title: "Error", description: data.error, variant: "destructive" });
+            }
+        } catch (err) {
+            toast({ title: "Error", description: "Failed to create repository.", variant: "destructive" });
+        } finally {
+            setIsCreatingRepo(false);
+        }
+    };
+
     const handleConnect = async () => {
-        if (!deploymentUrl || !connectorData) return;
+        if (!deploymentUrl.trim() || !connectorData) return;
         setIsLoading(true);
-        const res = await finalizeConnectorAction(connectorData.id, deploymentUrl);
+        const res = await finalizeConnectorAction(connectorData.id, deploymentUrl.trim());
         setIsLoading(false);
         if (res.success) {
-            saveState(4);
+            saveState(5);
             setIsDashboardReady(true);
             toast({ title: "Connected!", description: "Your connector is live." });
         } else {
@@ -133,7 +267,7 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                         New <span className="text-violet-500">Connector</span>
                     </h1>
                     <p className="text-muted-foreground text-lg leading-relaxed">
-                        Deploy a private connector to your cloud provider. We'll generate secure credentials and guide you through the process in three steps.
+                        Deploy a private connector to your cloud provider. We'll generate secure credentials and guide you through the process step by step.
                     </p>
                 </div>
 
@@ -194,7 +328,7 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                             <Input
                                                 placeholder="e.g. Production Database"
                                                 value={connectorName}
-                                                onChange={e => setConnectorName(e.target.value)}
+                                                onChange={e => handleNameChange(e.target.value)}
                                                 className="h-12 bg-background/50 focus-visible:ring-violet-500/20 focus:border-violet-500/50 transition-colors"
                                                 onFocus={() => setTimeout(scrollToSetup, 100)}
                                                 onClick={() => setTimeout(scrollToSetup, 100)}
@@ -207,7 +341,7 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                             <div className="grid sm:grid-cols-2 gap-3">
                                                 <button
                                                     type="button"
-                                                    onClick={() => setConnectorType("express")}
+                                                    onClick={() => handleTypeChange("express")}
                                                     className={cn("p-4 rounded-xl border text-left transition-all hover:-translate-y-0.5", connectorType === "express" ? "bg-violet-500/10 border-violet-500/30 ring-1 ring-violet-500/10" : "bg-card hover:border-violet-500/20")}
                                                 >
                                                     <div className="font-bold text-sm flex items-center justify-between">
@@ -217,7 +351,7 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setConnectorType("fastapi")}
+                                                    onClick={() => handleTypeChange("fastapi")}
                                                     className={cn("p-4 rounded-xl border text-left transition-all hover:-translate-y-0.5", connectorType === "fastapi" ? "bg-violet-500/10 border-violet-500/30 ring-1 ring-violet-500/10" : "bg-card hover:border-violet-500/20")}
                                                 >
                                                     <div className="font-bold text-sm flex items-center justify-between">
@@ -232,7 +366,7 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                     <div className="pt-4">
                                         <Button
                                             onClick={handleGenerate}
-                                            disabled={isLoading || !connectorName}
+                                            disabled={isLoading || !connectorName.trim()}
                                             className="w-full h-12 bg-violet-600 hover:bg-violet-500 text-white font-semibold gap-2 transition-all shadow-[0_4px_14px_0_rgba(139,92,246,0.25)] hover:shadow-[0_6px_20px_rgba(139,92,246,0.3)]"
                                         >
                                             {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Zap className="h-5 w-5" /> Generate Secure Credentials</>}
@@ -241,12 +375,12 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                 </div>
                             )}
 
-                            {/* ── Step 2: Deploy ── */}
+                            {/* ── Step 2: Setup Repo ── */}
                             {step === 2 && !isDashboardReady && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full">
                                     <div>
-                                        <h2 className="text-2xl font-bold">Deploy to Cloud</h2>
-                                        <p className="text-muted-foreground mt-1">Push your connector template directly to Vercel or your preferred cloud.</p>
+                                        <h2 className="text-2xl font-bold">Setup Repository</h2>
+                                        <p className="text-muted-foreground mt-1">We will generate your connector codebase directly into your GitHub account.</p>
                                     </div>
 
                                     {/* Credentials block */}
@@ -271,15 +405,90 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                                 </div>
                                             </div>
                                             <p className="text-[11px] text-muted-foreground">
-                                                Save these! They authenticate your connector with the Postpipe dashboard.
+                                                Save these! You will need them when deploying your connector.
                                             </p>
+                                        </div>
+                                    )}
+
+                                    <div className="pt-4 space-y-3">
+                                        {existingInstallationId ? (
+                                            <Button 
+                                                onClick={() => handleCreateRepo(existingInstallationId)}
+                                                disabled={isCreatingRepo}
+                                                className="w-full h-14 bg-foreground hover:bg-foreground/90 text-background font-semibold rounded-lg flex items-center justify-center gap-3 transition-all shadow-lg"
+                                            >
+                                                {isCreatingRepo ? <Loader2 className="h-6 w-6 animate-spin" /> : <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>}
+                                                {isCreatingRepo ? 'Creating Repository...' : 'Create Repository'}
+                                            </Button>
+                                        ) : (
+                                            <Button 
+                                                asChild
+                                                disabled={isCreatingRepo}
+                                                className="w-full h-14 bg-foreground hover:bg-foreground/90 text-background font-semibold rounded-lg flex items-center justify-center gap-3 transition-all shadow-lg"
+                                            >
+                                                <a href="https://github.com/apps/postpipe-connector/installations/new">
+                                                    {isCreatingRepo ? <Loader2 className="h-6 w-6 animate-spin" /> : <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>}
+                                                    {isCreatingRepo ? 'Creating Repository...' : 'Setup with GitHub App'}
+                                                </a>
+                                            </Button>
+                                        )}
+                                        <p className="text-xs text-muted-foreground text-center">
+                                            {existingInstallationId 
+                                                ? "You have already linked your GitHub account. Click to generate the code repository." 
+                                                : "This will install the Postpipe Connector app and create a new repository in your account automatically."}
+                                        </p>
+                                        <div className="text-center pt-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => saveState(3, undefined, "")}
+                                                className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition-colors underline underline-offset-4"
+                                            >
+                                                Already have a repository or deploying manually? Skip to Deploy <ArrowRight className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between gap-3 pt-6 border-t">
+                                        <Button variant="ghost" onClick={() => saveState(1)} className="h-11">Back</Button>
+                                        <Button 
+                                            variant="outline" 
+                                            onClick={() => saveState(3, undefined, "")} 
+                                            className="h-11 gap-2 border-border/80 hover:bg-accent font-medium"
+                                        >
+                                            Skip repo creation <ArrowRight className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* ── Step 3: Deploy ── */}
+                            {step === 3 && !isDashboardReady && (
+                                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full">
+                                    <div>
+                                        <h2 className="text-2xl font-bold">Deploy to Cloud</h2>
+                                        <p className="text-muted-foreground mt-1">Your repository is ready. Now push it to your preferred cloud provider.</p>
+                                    </div>
+
+                                    {/* Show repo link */}
+                                    {repoUrl && (
+                                        <div className="rounded-xl border bg-emerald-500/10 border-emerald-500/20 p-4 flex items-center gap-4">
+                                            <CheckCircle2 className="h-6 w-6 text-emerald-500 shrink-0" />
+                                            <div className="flex-1 overflow-hidden">
+                                                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Repository Created</p>
+                                                <a href={repoUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-600 dark:text-emerald-300 hover:underline truncate block w-full">
+                                                    {repoUrl}
+                                                </a>
+                                            </div>
+                                            <Button size="sm" variant="outline" className="border-emerald-500/30 hover:bg-emerald-500/20" asChild>
+                                                <a href={repoUrl} target="_blank" rel="noopener noreferrer">View Code</a>
+                                            </Button>
                                         </div>
                                     )}
 
                                     {/* Deploy targets */}
                                     <div className="grid sm:grid-cols-2 gap-4 pt-2">
                                         <a 
-                                            href={`https://vercel.com/new/clone?repository-url=${encodeURIComponent(connectorType === "fastapi" ? "https://github.com/PostPipe/postpipe-connector-fastapi" : "https://github.com/PostPipe/postpipe-connector-template")}&env=POSTPIPE_CONNECTOR_ID,POSTPIPE_CONNECTOR_SECRET&POSTPIPE_CONNECTOR_ID=${connectorData?.id || ''}&POSTPIPE_CONNECTOR_SECRET=${connectorData?.secret || ''}`}
+                                            href={repoUrl ? `https://vercel.com/new?repository-url=${encodeURIComponent(repoUrl)}&env=POSTPIPE_CONNECTOR_ID,POSTPIPE_CONNECTOR_SECRET,DATABASE_URL,DATABASE_ALIAS&envDescription=Enter your database connection string and alias` : "https://vercel.com/new"}
                                             target="_blank" rel="noopener noreferrer" 
                                             className="group relative flex flex-col items-center gap-4 rounded-xl border bg-card hover:bg-muted/30 hover:border-foreground/20 p-6 text-center transition-all hover:-translate-y-1 overflow-hidden"
                                         >
@@ -289,13 +498,13 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                             </div>
                                             <div>
                                                 <p className="font-bold text-foreground">Deploy with Vercel</p>
-                                                <p className="text-xs text-muted-foreground mt-1">1-Click Setup • Pre-filled env vars</p>
+                                                <p className="text-xs text-muted-foreground mt-1">Import your new repository</p>
                                             </div>
                                         </a>
 
                                         {connectorType === "fastapi" && (
                                             <a 
-                                                href="https://app.rivendeploy.com/new?repo=https%3A%2F%2Fgithub.com%2FPostPipe%2Fpostpipe-connector-fastapi" 
+                                                href="https://app.rivendeploy.com/new" 
                                                 target="_blank" rel="noopener noreferrer" 
                                                 className="group relative flex flex-col items-center gap-4 rounded-xl border bg-card hover:bg-muted/30 hover:border-[#F97316]/30 p-6 text-center transition-all hover:-translate-y-1 overflow-hidden"
                                             >
@@ -305,23 +514,38 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-foreground">Deploy with Riven</p>
-                                                    <p className="text-xs text-muted-foreground mt-1">Managed Cloud Deployment</p>
+                                                    <p className="text-xs text-muted-foreground mt-1">Import your new repository</p>
                                                 </div>
                                             </a>
                                         )}
                                     </div>
+                                    
+                                    {connectorType === "fastapi" && (
+                                        <div className="mt-6 p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 shadow-sm">
+                                            <div className="flex gap-3">
+                                                <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5 text-amber-500" />
+                                                <div className="text-sm">
+                                                    <p className="font-bold">Important: Vercel Deployment Notice</p>
+                                                    <p className="mt-1 opacity-90 leading-relaxed">
+                                                        Vercel recently changed their Python builder to use <code className="bg-background/80 px-1 py-0.5 rounded font-mono text-xs mx-1">uv</code>. This is causing private repository cloning to fail. 
+                                                        You <strong className="font-semibold underline underline-offset-2">must</strong> add <code className="bg-background/80 px-1 py-0.5 rounded font-mono text-xs font-bold mx-1">ENABLE_UV=0</code> to your Vercel Environment Variables before deploying.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div className="flex gap-3 pt-6 border-t">
-                                        <Button variant="ghost" onClick={() => setStep(1)} className="h-11">Back</Button>
-                                        <Button className="flex-1 h-11 gap-2" onClick={() => setStep(3)}>
+                                        <Button variant="ghost" onClick={() => saveState(2)} className="h-11">Back</Button>
+                                        <Button className="flex-1 h-11 gap-2" onClick={() => saveState(4)}>
                                             I've deployed it <ArrowRight className="h-4 w-4" />
                                         </Button>
                                     </div>
                                 </div>
                             )}
 
-                            {/* ── Step 3: Connect ── */}
-                            {step === 3 && !isDashboardReady && (
+                            {/* ── Step 4: Connect ── */}
+                            {step === 4 && !isDashboardReady && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full">
                                     <div>
                                         <h2 className="text-2xl font-bold">Connect Instance</h2>
@@ -332,16 +556,16 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                         <Input
                                             placeholder="https://my-connector.vercel.app"
                                             value={deploymentUrl}
-                                            onChange={e => setDeploymentUrl(e.target.value)}
+                                            onChange={e => handleDeploymentUrlChange(e.target.value)}
                                             className="h-12 bg-background/50 focus-visible:ring-violet-500/20 focus:border-violet-500/50"
                                             onKeyDown={e => e.key === "Enter" && handleConnect()}
                                         />
                                     </div>
                                     <div className="flex gap-3 pt-4">
-                                        <Button variant="ghost" onClick={() => setStep(2)} className="h-11">Back</Button>
+                                        <Button variant="ghost" onClick={() => saveState(3)} className="h-11">Back</Button>
                                         <Button 
                                             onClick={handleConnect} 
-                                            disabled={isLoading || !deploymentUrl} 
+                                            disabled={isLoading || !deploymentUrl.trim()} 
                                             className="flex-1 h-11 bg-violet-600 hover:bg-violet-500 text-white font-semibold gap-2 shadow-[0_4px_14px_0_rgba(139,92,246,0.25)] hover:shadow-[0_6px_20px_rgba(139,92,246,0.3)]"
                                         >
                                             {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Lock className="h-4 w-4" /> Verify Connection</>}
@@ -376,14 +600,7 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                                 <Database className="h-5 w-5" /> Create Database Mapping
                                             </Button>
                                         </Link>
-                                        <Button variant="outline" className="h-12 px-8 w-full sm:w-auto" onClick={() => {
-                                            if (user?.email) {
-                                                localStorage.removeItem(`pp_setup_step_${user.email}`);
-                                                setIsDashboardReady(false);
-                                                setStep(1);
-                                                setConnectorData(null);
-                                            }
-                                        }}>
+                                        <Button variant="outline" className="h-12 px-8 w-full sm:w-auto" onClick={clearWizardState}>
                                             Set up another
                                         </Button>
                                     </div>
@@ -395,9 +612,21 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                     {/* Right Col: Live Preview Sidebar */}
                     <div className="hidden lg:block lg:col-span-5 xl:col-span-4 sticky top-24">
                         <div className="rounded-2xl border bg-card shadow-sm overflow-hidden flex flex-col">
-                            <div className="px-5 py-4 border-b bg-muted/20 flex items-center gap-2">
-                                <Activity className="h-4 w-4 text-violet-500" />
-                                <h3 className="text-sm font-semibold">Live Preview</h3>
+                            <div className="px-5 py-4 border-b bg-muted/20 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Activity className="h-4 w-4 text-violet-500" />
+                                    <h3 className="text-sm font-semibold">Live Preview</h3>
+                                </div>
+                                {(step > 1 || connectorName || connectorData) && !isDashboardReady && (
+                                    <button
+                                        type="button"
+                                        onClick={clearWizardState}
+                                        className="text-[11px] text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors"
+                                        title="Clear draft and start fresh"
+                                    >
+                                        <RefreshCw className="h-3 w-3" /> Reset
+                                    </button>
+                                )}
                             </div>
                             
                             <div className="p-5 space-y-6">
@@ -408,8 +637,8 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                             {connectorName || "Unnamed Connector"}
                                         </div>
                                         <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-                                            <div className={cn("h-2 w-2 rounded-full", isDashboardReady ? "bg-emerald-500" : step > 1 ? "bg-amber-500" : "bg-muted-foreground/30")} />
-                                            {isDashboardReady ? "Live & Connected" : step > 1 ? "Awaiting Deployment" : "Draft"}
+                                            <div className={cn("h-2 w-2 rounded-full", isDashboardReady ? "bg-emerald-500" : step > 2 ? "bg-amber-500" : "bg-muted-foreground/30")} />
+                                            {isDashboardReady ? "Live & Connected" : step > 2 ? "Awaiting Deployment" : "Draft"}
                                         </div>
                                     </div>
                                     <div className="h-10 w-10 rounded-xl bg-violet-500/10 flex items-center justify-center shrink-0 border border-violet-500/20">

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
     ArrowLeft,
+    ArrowRight,
     Plus,
     Trash2,
     Code,
@@ -23,6 +24,7 @@ import {
     Link2,
     Folders,
 } from 'lucide-react';
+import { Logo } from '@/components/icons/logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -166,27 +168,20 @@ function SortableField({
             id={`field-card-${field.id}`}
             ref={setNodeRef}
             style={style}
-            className='relative mt-2'
+            className='relative'
         >
             <div
-                className={`relative group rounded-xl border bg-black/40 backdrop-blur-md shadow-sm transition-all duration-300 ${
+                className={`relative group rounded-xl border bg-[#121212] transition-all duration-300 ${
                     isDragging
-                        ? 'opacity-50 scale-[0.98] ring-2 ring-primary/50'
+                        ? 'opacity-50 scale-[0.98] ring-1 ring-white/20'
                         : isNew
-                          ? 'border-emerald-500/50 ring-2 ring-emerald-500/30 shadow-[0_0_12px_rgba(52,211,153,0.2)]'
-                          : isReferenceType
-                            ? 'border-violet-500/30 hover:border-violet-400/50'
-                            : 'hover:border-primary/30 border-white/5'
+                          ? 'border-neutral-400/30 bg-[#181818]'
+                          : 'hover:border-white/20 border-white/10'
                 }`}
             >
-                {/* Subtle violet glow on reference fields */}
-                {isReferenceType && !isDragging && (
-                    <div className='absolute inset-0 rounded-xl bg-violet-500/5 pointer-events-none' />
-                )}
-
                 <div className='p-4 flex gap-3 items-start relative z-10'>
                     <div
-                        className='mt-2 text-neutral-500 cursor-grab active:cursor-grabbing hover:text-white transition-colors'
+                        className='mt-2 text-neutral-600 cursor-grab active:cursor-grabbing hover:text-white transition-colors'
                         {...attributes}
                         {...listeners}
                     >
@@ -196,7 +191,7 @@ function SortableField({
                     <div className='grid gap-3 flex-1'>
                         <div className='grid grid-cols-2 gap-3'>
                             <div className='space-y-1'>
-                                <Label className='text-[10px] text-neutral-400 uppercase tracking-wider'>
+                                <Label className='text-[10px] text-neutral-500 uppercase tracking-wider font-medium'>
                                     Label
                                 </Label>
                                 <Input
@@ -208,14 +203,14 @@ function SortableField({
                                             e.target.value,
                                         )
                                     }
-                                    className='h-8 text-xs bg-white/5 border-white/10 text-white'
+                                    className='h-8 text-xs bg-[#0a0a0a] border-white/10 text-white focus-visible:ring-1 focus-visible:ring-white/20 focus-visible:border-white/20'
                                 />
                             </div>
                             <div className='space-y-1'>
-                                <Label className='text-[10px] text-neutral-400 uppercase tracking-wider'>
+                                <Label className='text-[10px] text-neutral-500 uppercase tracking-wider font-medium'>
                                     Type
                                     {isReferenceType && (
-                                        <span className='ml-1.5 text-[8px] text-violet-400 bg-violet-500/15 border border-violet-500/25 px-1.5 py-0.5 rounded-full uppercase tracking-widest'>
+                                        <span className='ml-1.5 text-[8px] text-neutral-400 bg-white/5 border border-white/10 px-1.5 py-0.5 rounded-full uppercase tracking-widest'>
                                             relational
                                         </span>
                                     )}
@@ -225,11 +220,7 @@ function SortableField({
                                     onValueChange={handleTypeChange}
                                 >
                                     <SelectTrigger
-                                        className={`h-8 text-xs border-white/10 text-white ${
-                                            isReferenceType
-                                                ? 'bg-violet-500/10 border-violet-500/30'
-                                                : 'bg-white/5'
-                                        }`}
+                                        className='h-8 text-xs border-white/10 text-white bg-[#0a0a0a] focus:ring-1 focus:ring-white/20'
                                     >
                                         <SelectValue />
                                     </SelectTrigger>
@@ -251,7 +242,7 @@ function SortableField({
                                                 className='w-full bg-white/5 border border-white/10 rounded-md px-2 py-1 text-xs text-white placeholder:text-neutral-500 outline-none focus:border-indigo-500/50'
                                             />
                                         </div>
-                                        <div className='overflow-y-auto max-h-[260px]'>
+                                        <div className='overflow-y-auto max-h-[260px] bg-[#0a0a0a]'>
                                             {Object.keys(filteredGroups)
                                                 .length === 0 ? (
                                                 <p className='py-4 text-center text-xs text-neutral-500'>
@@ -263,12 +254,7 @@ function SortableField({
                                                 ).map(([category, ftypes]) => (
                                                     <SelectGroup key={category}>
                                                         <SelectLabel
-                                                            className={`text-xs font-semibold bg-black/40 px-2 py-1 uppercase tracking-wider sticky top-0 z-10 ${
-                                                                category ===
-                                                                'Reference'
-                                                                    ? 'text-violet-300'
-                                                                    : 'text-indigo-300'
-                                                            }`}
+                                                            className='text-xs font-semibold bg-[#050505] px-2 py-1.5 uppercase tracking-wider sticky top-0 z-10 text-neutral-400'
                                                         >
                                                             {category}
                                                         </SelectLabel>
@@ -276,13 +262,13 @@ function SortableField({
                                                             <SelectItem
                                                                 key={f.value}
                                                                 value={f.value}
-                                                                className='pl-6 text-xs hover:bg-white/5 cursor-pointer'
+                                                                className='pl-6 text-xs hover:bg-white/5 cursor-pointer focus:bg-white/5'
                                                             >
                                                                 {f.label}
                                                                 {REFERENCE_TYPES.has(
                                                                     f.value,
                                                                 ) && (
-                                                                    <span className='ml-2 text-[9px] text-violet-400'></span>
+                                                                    <span className='ml-2 text-[9px] text-neutral-500'></span>
                                                                 )}
                                                             </SelectItem>
                                                         ))}
@@ -371,7 +357,7 @@ function SortableField({
                                         />
                                         <Label
                                             htmlFor={`rel-${field.id}`}
-                                            className='text-xs text-emerald-300 font-normal'
+                                            className='text-xs text-neutral-300 font-normal'
                                         >
                                             Make Relational Field
                                         </Label>
@@ -381,7 +367,7 @@ function SortableField({
                             <div className='flex items-center gap-2'>
                                 {isReferenceType &&
                                     field.reference?.collection && (
-                                        <span className='text-[9px] text-violet-400 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+                                        <span className='text-[9px] text-neutral-400 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
                                             <Link2 className='w-2.5 h-2.5' />→{' '}
                                             {field.reference.collection}
                                         </span>
@@ -438,6 +424,13 @@ export default function NewFormClient({
         initialData?.targetDatabase || 'default',
     );
     const [activeTab, setActiveTab] = useState('build');
+    const contentScrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (contentScrollRef.current) {
+            contentScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }, [activeTab]);
     const [addPulse, setAddPulse] = useState(false);
     const [newFieldId, setNewFieldId] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
@@ -703,27 +696,16 @@ export default function NewFormClient({
 
     // Professional Form Preview Render
     const renderLivePreview = () => (
-        <div className='relative w-full max-w-sm mx-auto rounded-[2rem] border border-white/5 bg-[#09090D] shadow-2xl overflow-hidden flex flex-col group/preview animate-in zoom-in-95 duration-1000'>
-            {/* The animated beam on the preview card itself looks ultra-premium */}
-            <div className='absolute inset-0 opacity-0 group-hover/preview:opacity-100 transition-opacity duration-1000 pointer-events-none'>
-                <BorderBeam
-                    size={250}
-                    duration={8}
-                    delay={0}
-                    colorFrom='#8b5cf6'
-                    colorTo='#3b82f6'
-                />
-            </div>
-
-            <div className='p-8 flex-1 flex flex-col relative z-10 w-full'>
-                <div className='w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center mb-6'>
-                    <Sparkles className='w-6 h-6 text-indigo-400' />
+        <div className='relative w-full max-w-sm mx-auto rounded-xl border border-white/10 bg-[#121212] shadow-sm flex flex-col animate-in zoom-in-95 duration-500'>
+            <div className='p-6 flex-1 flex flex-col w-full'>
+                <div className='w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center mb-5'>
+                    <Logo className='w-5 h-5 text-white' />
                 </div>
 
-                <h3 className='text-2xl font-semibold text-white tracking-tight mb-1'>
+                <h3 className='text-xl font-medium text-white mb-1'>
                     {formName || 'Untitled Form'}
                 </h3>
-                <p className='text-sm text-neutral-400 mb-8'>
+                <p className='text-xs text-neutral-400 mb-6'>
                     Please fill out this form to continue.
                 </p>
 
@@ -733,19 +715,18 @@ export default function NewFormClient({
                         return (
                             <div
                                 key={`preview-${f.id}`}
-                                className='space-y-1.5 animate-in slide-in-from-bottom-2 fade-in fill-mode-both'
-                                style={{ animationDelay: `${i * 50}ms` }}
+                                className='space-y-1.5'
                             >
-                                <label className='text-[11px] font-medium text-neutral-300 ml-1 tracking-wide uppercase'>
+                                <label className='text-[11px] font-medium text-neutral-300 ml-0.5 tracking-wide'>
                                     {f.label}{' '}
                                     {f.required && (
-                                        <span className='text-red-400'>*</span>
+                                        <span className='text-neutral-500'>*</span>
                                     )}
                                 </label>
                                 {conf.component === 'TextareaInput' ||
                                 conf.component === 'JsonEditor' ? (
                                     <textarea
-                                        className='w-full bg-[#12121A] border border-white/5 rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all outline-none resize-none h-24 shadow-inner'
+                                        className='w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-neutral-600 focus:border-white/20 transition-all outline-none resize-none h-20'
                                         placeholder={
                                             conf.component === 'JsonEditor'
                                                 ? '{ ... }'
@@ -754,10 +735,9 @@ export default function NewFormClient({
                                         disabled
                                     />
                                 ) : conf.category === 'Media' ? (
-                                    <div className='flex items-center gap-3 bg-[#12121A] border border-white/5 rounded-xl px-4 py-3'>
-                                        <span className='text-lg'>📷</span>
+                                    <div className='flex items-center justify-center gap-2 bg-[#0a0a0a] border border-dashed border-white/20 rounded-lg px-4 py-4'>
                                         <span className='text-sm text-neutral-500'>
-                                            Image upload field
+                                            Upload file
                                         </span>
                                     </div>
                                 ) : conf.category === 'Boolean' ? (
@@ -765,15 +745,15 @@ export default function NewFormClient({
                                         <input
                                             type='checkbox'
                                             disabled
-                                            className='w-4 h-4 rounded border-white/10 bg-[#12121A]'
+                                            className='w-3.5 h-3.5 rounded border-white/20 bg-[#0a0a0a]'
                                         />
-                                        <span className='text-sm text-neutral-400'>
+                                        <span className='text-xs text-neutral-400'>
                                             Checkbox
                                         </span>
                                     </div>
                                 ) : conf.category === 'Selection' ? (
                                     <select
-                                        className='w-full bg-[#12121A] border border-white/5 rounded-xl px-4 py-3 text-sm text-white outline-none shadow-inner'
+                                        className='w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none'
                                         disabled
                                     >
                                         <option>
@@ -784,33 +764,21 @@ export default function NewFormClient({
                                         </option>
                                     </select>
                                 ) : conf.category === 'Reference' ? (
-                                    /* ── Reference field preview ── */
-                                    <div className='w-full bg-[#12121A] border border-violet-500/20 rounded-xl px-4 py-3 flex items-center gap-3 shadow-inner'>
-                                        <Link2 className='w-4 h-4 text-violet-400 shrink-0' />
+                                    <div className='w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-2 flex items-center gap-2'>
+                                        <Link2 className='w-3.5 h-3.5 text-neutral-500 shrink-0' />
                                         <div className='flex-1 min-w-0'>
                                             <p className='text-xs text-neutral-400 truncate'>
                                                 {f.reference?.collection ? (
-                                                    <>
-                                                        →{' '}
-                                                        <span className='text-violet-300 font-mono'>
-                                                            {
-                                                                f.reference
-                                                                    .collection
-                                                            }
-                                                        </span>
-                                                    </>
+                                                    <span className='text-neutral-300'>
+                                                        {f.reference.collection}
+                                                    </span>
                                                 ) : (
                                                     <span className='text-neutral-600 italic'>
-                                                        No collection selected
+                                                        Select...
                                                     </span>
                                                 )}
                                             </p>
                                         </div>
-                                        {f.reference?.collection && (
-                                            <span className='text-[9px] text-violet-400 bg-violet-500/15 border border-violet-500/20 px-1.5 py-0.5 rounded-full uppercase tracking-widest shrink-0'>
-                                                ref
-                                            </span>
-                                        )}
                                     </div>
                                 ) : (
                                     <input
@@ -830,7 +798,7 @@ export default function NewFormClient({
                                                   ? '1'
                                                   : undefined
                                         }
-                                        className='w-full bg-[#12121A] border border-white/5 rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all outline-none shadow-inner'
+                                        className='w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-neutral-600 focus:border-white/20 transition-all outline-none'
                                         placeholder={
                                             conf.category === 'Structured'
                                                 ? 'item1, item2, item3'
@@ -843,28 +811,22 @@ export default function NewFormClient({
                         );
                     })}
                     {fields.length === 0 && (
-                        <div className='text-center py-10 opacity-50 text-neutral-500 text-sm border border-dashed border-white/10 rounded-xl bg-white/5 w-full'>
-                            Canvas is empty
+                        <div className='text-center py-8 opacity-50 text-neutral-500 text-xs border border-dashed border-white/10 rounded-lg bg-[#0a0a0a] w-full'>
+                            No fields configured
                         </div>
                     )}
                 </div>
 
-                <div className='pt-8 mt-auto w-full flex flex-col items-center'>
+                <div className='pt-6 mt-4 w-full'>
                     <button
                         disabled
-                        className='w-full relative group overflow-hidden bg-white text-black font-semibold py-3.5 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]'
+                        className='w-full bg-white text-black font-medium text-sm py-2.5 rounded-lg transition-opacity hover:opacity-90'
                     >
-                        <span className='relative z-10'>
-                            Submit Interrogation
-                        </span>
-                        <div className='absolute inset-0 bg-gradient-to-r from-indigo-200 to-purple-200 opacity-0 group-hover:opacity-100 transition-opacity' />
+                        Submit
                     </button>
-                    <div className='text-center mt-4 flex flex-col items-center justify-center'>
+                    <div className='text-center mt-3'>
                         <span className='text-[10px] text-neutral-500 flex items-center justify-center gap-1'>
-                            <Lock className='w-3 h-3' /> Secured by Postpipe
-                        </span>
-                        <span className='text-[9px] text-neutral-600 mt-1 uppercase tracking-widest font-medium'>
-                            Powered by CDDRS
+                            <Lock className='w-2.5 h-2.5' /> Secure Form
                         </span>
                     </div>
                 </div>
@@ -873,55 +835,51 @@ export default function NewFormClient({
     );
 
     return (
-        <div className='fixed inset-0 pt-[65px] z-[40] bg-[#05050A]'>
+        <div className='fixed inset-0 pt-[65px] z-[40] bg-[#050505]'>
             {/* The App Layout */}
             <div className='flex flex-col w-full h-full relative overflow-hidden'>
-                {/* Subtle cosmic background */}
-                <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/10 via-[#05050A] to-[#05050A] pointer-events-none' />
-                <div className='absolute top-0 right-0 w-[800px] h-[800px] bg-primary/5 blur-[150px] rounded-full pointer-events-none' />
-
                 {/* Top App Bar */}
-                <header className='h-16 border-b border-white/5 bg-black/40 backdrop-blur-xl flex items-center justify-between px-4 lg:px-8 relative z-20'>
-                    <div className='flex items-center gap-4 flex-1'>
+                <header className='h-14 border-b border-white/10 bg-[#0a0a0a] flex items-center justify-between px-4 lg:px-6 relative z-20'>
+                    <div className='flex items-center gap-3 flex-1'>
                         {onBack ? (
                             <Button
                                 variant='ghost'
                                 size='icon'
                                 onClick={onBack}
-                                className='text-neutral-400 hover:text-white rounded-full bg-white/5'
+                                className='text-neutral-400 hover:text-white rounded-md bg-transparent hover:bg-white/5 h-8 w-8'
                             >
-                                <ArrowLeft className='h-5 w-5' />
+                                <ArrowLeft className='h-4 w-4' />
                             </Button>
                         ) : (
                             <Link href='/dashboard/forms'>
                                 <Button
                                     variant='ghost'
                                     size='icon'
-                                    className='text-neutral-400 hover:text-white rounded-full bg-white/5'
+                                    className='text-neutral-400 hover:text-white rounded-md bg-transparent hover:bg-white/5 h-8 w-8'
                                 >
-                                    <ArrowLeft className='h-5 w-5' />
+                                    <ArrowLeft className='h-4 w-4' />
                                 </Button>
                             </Link>
                         )}
-                        <div className='h-6 w-px bg-white/10' />
+                        <div className='h-4 w-px bg-white/10 mx-1' />
                         <Input
                             value={formName}
                             onChange={(e) => setFormName(e.target.value)}
-                            className='bg-transparent border-transparent hover:border-white/10 focus:border-white/20 focus-visible:ring-indigo-500/50 focus-visible:ring-1 text-lg font-semibold text-white px-3 w-full max-w-[300px] transition-all'
+                            className='bg-transparent border-transparent hover:border-white/10 focus:border-white/20 focus-visible:ring-0 text-sm font-medium text-white px-2 w-full max-w-[300px] transition-all h-8 rounded-md'
                             placeholder='Untitled Form'
                         />
                     </div>
 
-                    <div className='flex items-center gap-3'>
+                    <div className='flex items-center gap-2'>
                         {generatedId && (
-                            <div className='hidden md:flex items-center gap-2 text-xs font-medium text-green-400 bg-green-400/10 px-3 py-1.5 rounded-full border border-green-400/20 mr-2'>
-                                <div className='w-2 h-2 rounded-full bg-green-400 animate-pulse' />{' '}
-                                Live
+                            <div className='hidden md:flex items-center gap-1.5 text-[11px] font-medium text-neutral-400 bg-white/5 px-2.5 py-1 rounded-md border border-white/10 mr-2'>
+                                <div className='w-1.5 h-1.5 rounded-full bg-neutral-400' />
+                                Deployed
                             </div>
                         )}
                         <Button
                             variant='ghost'
-                            className='text-neutral-400 hover:text-white xl:hidden border border-white/10 bg-black/50'
+                            className='text-neutral-400 hover:text-white xl:hidden bg-transparent hover:bg-white/5 h-8 px-3 text-xs'
                             onClick={() =>
                                 setActiveTab(
                                     activeTab === 'preview'
@@ -931,119 +889,124 @@ export default function NewFormClient({
                             }
                         >
                             {activeTab === 'preview'
-                                ? 'Close Preview'
+                                ? 'Builder'
                                 : 'Preview'}
                         </Button>
                         <Button
                             variant='ghost'
-                            className='h-9 px-4 text-sm text-neutral-400 hover:text-white hover:bg-white/5 border border-white/5 rounded-xl transition-all mr-2'
+                            className='h-8 px-3 text-xs text-neutral-400 hover:text-white hover:bg-white/5 transition-all mr-2 rounded-md'
                             onClick={handleReset}
                         >
-                            <RotateCcw className='w-4 h-4 mr-2' /> Reset
+                            <RotateCcw className='w-3 h-3 mr-1.5' /> Reset
                         </Button>
-                        <RainbowButton
+                        <Button
                             onClick={handleSave}
-                            className='h-9 px-6 text-sm shadow-[0_0_15px_rgba(139,92,246,0.3)]'
+                            className='h-8 px-4 text-xs bg-white text-black hover:bg-neutral-200 rounded-md shadow-sm'
                             disabled={isSaving}
                         >
                             {isSaving ? (
-                                <div className='scale-75 -mx-4 flex items-center justify-center'>
+                                <div className='scale-75 -mx-2 flex items-center justify-center'>
                                     <Loader />
                                 </div>
                             ) : (
                                 <>
-                                    <Save className='w-4 h-4 mr-2' />{' '}
+                                    <Save className='w-3 h-3 mr-1.5' />
                                     {initialData
-                                        ? 'Update Form'
-                                        : 'Deploy Form'}
+                                        ? 'Update'
+                                        : 'Deploy'}
                                 </>
                             )}
-                        </RainbowButton>
+                        </Button>
                     </div>
                 </header>
 
                 {/* Workspace area */}
-                <div className='flex-1 flex overflow-hidden relative z-10 w-full max-w-[1600px] mx-auto'>
-                    {!formName && (
-                        <div className='absolute inset-0 z-50 bg-[#05050A]/70 backdrop-blur-md flex flex-col items-center pt-[15vh] pb-4 px-4 overflow-y-auto'>
-                            <div className='bg-[#09090D] p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col items-center max-w-sm w-full animate-in zoom-in-y-95 duration-500'>
-                                <div className='w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6'>
-                                    <Lock className='w-8 h-8 text-neutral-400' />
+                <div className='flex-1 flex flex-col overflow-hidden relative w-full bg-[#0a0a0a]'>
+                    {/* Step Navigation */}
+                    <div className='w-full px-5 lg:px-8 py-5 border-b border-white/5 bg-[#0a0a0a]/50 backdrop-blur-md z-20 flex justify-center'>
+                        <div className='flex items-center gap-0 w-full max-w-2xl'>
+                                {/* Step 1 */}
+                                <button
+                                    onClick={() => setActiveTab('build')}
+                                    className='flex items-center gap-2.5 group'
+                                >
+                                    <div className={`flex items-center justify-center w-6 h-6 rounded-full border text-[10px] font-semibold shrink-0 transition-all ${
+                                        activeTab === 'build'
+                                            ? 'bg-white text-black border-white'
+                                            : activeTab === 'settings' || activeTab === 'embed'
+                                              ? 'bg-neutral-700 border-neutral-700 text-white'
+                                              : 'border-white/20 text-neutral-500'
+                                    }`}>
+                                        {activeTab === 'settings' || activeTab === 'embed' ? <Check className='w-3 h-3' /> : '1'}
+                                    </div>
+                                    <span className={`text-xs font-medium transition-colors ${
+                                        activeTab === 'build' ? 'text-white' : 'text-neutral-500 group-hover:text-neutral-300'
+                                    }`}>Schema</span>
+                                </button>
+
+                                {/* Connector */}
+                                <div className='flex-1 mx-3 h-px bg-white/10 relative'>
+                                    <div className={`absolute inset-y-0 left-0 bg-white/40 transition-all duration-500 ${
+                                        activeTab === 'settings' || activeTab === 'embed' ? 'w-full' : 'w-0'
+                                    }`} />
                                 </div>
-                                <h2 className='text-xl font-semibold mb-2 text-white text-center'>
-                                    Name Your Form
-                                </h2>
-                                <p className='text-sm text-neutral-400 text-center mb-6 leading-relaxed'>
-                                    Please provide a name to unlock the Builder
-                                    workspace and start configuring fields.
-                                </p>
-                                <div className='w-full space-y-4'>
-                                    <Input
-                                        value={tempName}
-                                        onChange={(e) =>
-                                            setTempName(e.target.value)
-                                        }
-                                        placeholder='e.g. Customer Feedback Form'
-                                        className='bg-black/50 border-white/10 text-white placeholder:text-neutral-600 h-11 focus-visible:ring-indigo-500/50'
-                                        onKeyDown={(e) => {
-                                            if (
-                                                e.key === 'Enter' &&
-                                                tempName.trim()
-                                            ) {
-                                                setFormName(tempName.trim());
-                                            }
-                                        }}
-                                        autoFocus
-                                    />
-                                    <Button
-                                        className='w-full bg-primary hover:bg-primary/90 text-white h-11 rounded-xl transition-all'
-                                        onClick={() => {
-                                            if (tempName.trim())
-                                                setFormName(tempName.trim());
-                                        }}
-                                        disabled={!tempName.trim()}
-                                    >
-                                        Start Building{' '}
-                                        <ArrowLeft className='w-4 h-4 ml-2 rotate-180' />
-                                    </Button>
+
+                                {/* Step 2 */}
+                                <button
+                                    onClick={() => setActiveTab('settings')}
+                                    className='flex items-center gap-2.5 group'
+                                >
+                                    <div className={`flex items-center justify-center w-6 h-6 rounded-full border text-[10px] font-semibold shrink-0 transition-all ${
+                                        activeTab === 'settings'
+                                            ? 'bg-white text-black border-white'
+                                            : activeTab === 'embed'
+                                              ? 'bg-neutral-700 border-neutral-700 text-white'
+                                              : 'border-white/20 text-neutral-500'
+                                    }`}>
+                                        {activeTab === 'embed' ? <Check className='w-3 h-3' /> : '2'}
+                                    </div>
+                                    <span className={`text-xs font-medium transition-colors ${
+                                        activeTab === 'settings' ? 'text-white' : 'text-neutral-500 group-hover:text-neutral-300'
+                                    }`}>Settings</span>
+                                </button>
+
+                                {/* Connector */}
+                                <div className='flex-1 mx-3 h-px bg-white/10 relative'>
+                                    <div className={`absolute inset-y-0 left-0 bg-white/40 transition-all duration-500 ${
+                                        activeTab === 'embed' ? 'w-full' : 'w-0'
+                                    }`} />
                                 </div>
+
+                                {/* Step 3 */}
+                                <button
+                                    onClick={() => setActiveTab('embed')}
+                                    className='flex items-center gap-2.5 group'
+                                >
+                                    <div className={`flex items-center justify-center w-6 h-6 rounded-full border text-[10px] font-semibold shrink-0 transition-all ${
+                                        activeTab === 'embed'
+                                            ? 'bg-white text-black border-white'
+                                            : 'border-white/20 text-neutral-500'
+                                    }`}>3</div>
+                                    <span className={`text-xs font-medium transition-colors ${
+                                        activeTab === 'embed' ? 'text-white' : 'text-neutral-500 group-hover:text-neutral-300'
+                                    }`}>Integration</span>
+                                </button>
                             </div>
                         </div>
-                    )}
 
-                    {/* Left Panel: Controls */}
-                    <div
-                        className={`w-full xl:w-[60%] 2xl:w-[65%] shrink-0 border-r border-white/5 bg-[#09090D]/80 backdrop-blur-md flex flex-col transition-transform duration-300 ${activeTab === 'preview' ? '-translate-x-full xl:translate-x-0 absolute xl:relative h-full z-10' : ''}`}
-                    >
-                        {/* Tab Headers */}
-                        <div className='flex p-3 gap-2 bg-black/20 border-b border-white/5'>
-                            <button
-                                onClick={() => setActiveTab('build')}
-                                className={`flex-1 py-2.5 text-xs font-medium rounded-xl flex items-center justify-center gap-2 transition-all duration-300 ${activeTab === 'build' ? 'bg-[#181824] text-white shadow-sm border border-white/5' : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'}`}
-                            >
-                                <Layers className='w-4 h-4' /> Fields
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('settings')}
-                                className={`flex-1 py-2.5 text-xs font-medium rounded-xl flex items-center justify-center gap-2 transition-all duration-300 ${activeTab === 'settings' ? 'bg-[#181824] text-white shadow-sm border border-white/5' : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'}`}
-                            >
-                                <Settings className='w-4 h-4' /> Config
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('embed')}
-                                className={`flex-1 py-2.5 text-xs font-medium rounded-xl flex items-center justify-center gap-2 transition-all duration-300 ${activeTab === 'embed' ? 'bg-[#181824] text-white shadow-sm border border-white/5' : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'}`}
-                            >
-                                <Code className='w-4 h-4' /> Embed
-                            </button>
-                        </div>
-
-                        {/* Control Content */}
-                        <div className='flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full'>
-                            <div className='p-6 pb-20'>
+                    {/* Panels Container */}
+                    <div className='flex-1 flex overflow-hidden relative w-full'>
+                        {/* Left Panel: Controls */}
+                        <div
+                            className={`w-full xl:w-[55%] 2xl:w-[60%] shrink-0 flex flex-col transition-transform duration-300 ${activeTab === 'preview' ? '-translate-x-full xl:translate-x-0 absolute xl:relative h-full z-10' : ''}`}
+                        >
+                            {/* Control Content */}
+                            <div ref={contentScrollRef} className='flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full'>
+                                <div className='p-5 pb-6 max-w-3xl mx-auto w-full'>
                                 {/* BUILD TAB */}
                                 {activeTab === 'build' && (
-                                    <div className='space-y-6'>
-                                        <div className='flex items-center justify-between mb-6'>
+                                    <div className='space-y-4'>
+                                        <div className='flex items-center justify-between mb-4'>
                                             <div>
                                                 <h2 className='text-sm font-semibold text-white'>
                                                     Schema Definition
@@ -1113,7 +1076,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                     verticalListSortingStrategy
                                                 }
                                             >
-                                                <div className='space-y-1'>
+                                                <div className='space-y-2'>
                                                     {fields.map((field) => (
                                                         <SortableField
                                                             key={field.id}
@@ -1154,16 +1117,36 @@ CLOUDINARY_URL=cloudinary://...`}
                                                 </div>
                                             </SortableContext>
                                         </DndContext>
+                                        <div className='pt-6'>
+                                            <Button
+                                                onClick={addField}
+                                                variant='outline'
+                                                className='w-full h-10 border-dashed border-white/20 bg-transparent hover:bg-white/5 hover:border-white/30 text-neutral-400 hover:text-white rounded-lg transition-all flex items-center justify-center gap-2'
+                                            >
+                                                <Plus className='w-4 h-4' />
+                                                <span className='text-xs font-medium'>Add Field</span>
+                                            </Button>
+                                        </div>
+                                        {/* Step footer */}
+                                        <div className='pt-8 flex justify-end'>
+                                            <Button
+                                                onClick={() => setActiveTab('settings')}
+                                                className='h-10 px-6 text-xs bg-white text-black hover:bg-neutral-200 rounded-lg flex items-center gap-2 font-medium shadow-lg shadow-white/5'
+                                            >
+                                                Continue to Settings
+                                                <ArrowRight className='w-4 h-4' />
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
 
                                 {/* SETTINGS TAB */}
                                 {activeTab === 'settings' && (
-                                    <div className='space-y-8 animate-in fade-in slide-in-from-left-2 duration-500'>
+                                    <div className='space-y-6 animate-in fade-in slide-in-from-right-2 duration-300'>
                                         <div className='space-y-6'>
                                             <div>
-                                                <h2 className='text-sm font-semibold text-white flex items-center gap-2'>
-                                                    <Database className='w-4 h-4 text-indigo-400' />{' '}
+                                                <h2 className='text-sm font-medium text-white flex items-center gap-2'>
+                                                    <Database className='w-4 h-4 text-neutral-400' />{' '}
                                                     Core Integration
                                                 </h2>
                                                 <p className='text-xs text-neutral-400 mt-1'>
@@ -1171,9 +1154,9 @@ CLOUDINARY_URL=cloudinary://...`}
                                                     for this form.
                                                 </p>
                                             </div>
-                                            <div className='space-y-4 bg-white/5 p-4 rounded-xl border border-white/5'>
+                                            <div className='space-y-4 bg-[#121212] p-5 rounded-xl border border-white/10'>
                                                  <div className='space-y-2'>
-                                                     <Label className='text-xs text-neutral-300'>
+                                                     <Label className='text-xs text-neutral-400 font-medium'>
                                                          Form Group (Optional)
                                                      </Label>
                                                      <div className='relative'>
@@ -1187,7 +1170,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                  )
                                                              }
                                                              placeholder='e.g. Support, Auth, Onboarding...'
-                                                             className='h-9 pl-9 bg-[#0A0A0F] border-white/10 text-xs text-white placeholder:text-neutral-600 focus:ring-violet-500/40'
+                                                             className='h-9 pl-9 bg-[#0a0a0a] border-white/10 text-xs text-white placeholder:text-neutral-600 focus-visible:ring-1 focus-visible:ring-white/20'
                                                          />
                                                      </div>
                                                      <p className='text-[10px] text-neutral-500'>
@@ -1197,7 +1180,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                      </p>
                                                  </div>
                                                  <div className='space-y-2'>
-                                                     <Label className='text-xs text-neutral-300'>
+                                                     <Label className='text-xs text-neutral-400 font-medium'>
                                                          Target Connector
                                                      </Label>
                                                      <Select
@@ -1206,7 +1189,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                              setConnector
                                                          }
                                                      >
-                                                        <SelectTrigger className='bg-[#0A0A0F] border-white/10 text-white'>
+                                                        <SelectTrigger className='bg-[#0a0a0a] border-white/10 text-white h-9 focus:ring-1 focus:ring-white/20'>
                                                             <SelectValue placeholder='Choose target connector...' />
                                                         </SelectTrigger>
                                                         <SelectContent>
@@ -1228,7 +1211,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                     </Select>
                                                 </div>
                                                 <div className='space-y-2'>
-                                                    <Label className='text-xs text-neutral-300'>
+                                                    <Label className='text-xs text-neutral-400 font-medium'>
                                                         Target Database
                                                     </Label>
                                                     <Select
@@ -1237,7 +1220,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                             setTargetDb
                                                         }
                                                     >
-                                                        <SelectTrigger className='bg-[#0A0A0F] border-white/10 text-white'>
+                                                        <SelectTrigger className='bg-[#0a0a0a] border-white/10 text-white h-9 focus:ring-1 focus:ring-white/20'>
                                                             <SelectValue placeholder='Select primary database...' />
                                                         </SelectTrigger>
                                                         <SelectContent>
@@ -1268,10 +1251,10 @@ CLOUDINARY_URL=cloudinary://...`}
 
                                         {connector &&
                                             availableDatabases.length > 0 && (
-                                                <div className='space-y-6 pt-6 border-t border-white/5'>
+                                                <div className='space-y-6 pt-6 border-t border-white/10'>
                                                     <div>
-                                                        <h2 className='text-sm font-semibold text-white flex items-center gap-2'>
-                                                            <Send className='w-4 h-4 text-blue-400' />{' '}
+                                                        <h2 className='text-sm font-medium text-white flex items-center gap-2'>
+                                                            <Send className='w-4 h-4 text-neutral-400' />{' '}
                                                             Advanced Routing
                                                         </h2>
                                                         <p className='text-xs text-neutral-400 mt-1'>
@@ -1284,7 +1267,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                     <div className='space-y-4'>
                                                         {/* Broadcast */}
                                                         <div className='space-y-3'>
-                                                            <Label className='text-xs font-medium text-neutral-300'>
+                                                            <Label className='text-xs font-medium text-neutral-400'>
                                                                 Multi-Node
                                                                 Broadcast
                                                             </Label>
@@ -1303,7 +1286,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                                 key={
                                                                                     db
                                                                                 }
-                                                                                className='flex items-center space-x-3 border border-white/5 bg-black/40 p-3 rounded-xl'
+                                                                                className='flex items-center space-x-3 border border-white/10 bg-[#121212] p-3 rounded-xl'
                                                                             >
                                                                                 <Switch
                                                                                     id={`broadcast-${db}`}
@@ -1318,11 +1301,11 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                                 />
                                                                                 <Label
                                                                                     htmlFor={`broadcast-${db}`}
-                                                                                    className='text-xs text-neutral-200'
+                                                                                    className='text-xs text-neutral-300'
                                                                                 >
                                                                                     Mirror
                                                                                     to{' '}
-                                                                                    <span className='font-mono text-primary/80'>
+                                                                                    <span className='font-mono text-white'>
                                                                                         {
                                                                                             db
                                                                                         }
@@ -1335,9 +1318,9 @@ CLOUDINARY_URL=cloudinary://...`}
                                                         </div>
 
                                                         {/* Breakpoints */}
-                                                        <div className='space-y-3 pt-4 border-t border-white/5'>
+                                                        <div className='space-y-3 pt-4 border-t border-white/10'>
                                                             <div className='flex items-center justify-between'>
-                                                                <Label className='text-xs font-medium text-neutral-300'>
+                                                                <Label className='text-xs font-medium text-neutral-400'>
                                                                     Field
                                                                     Breakpoints
                                                                 </Label>
@@ -1347,9 +1330,9 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                     onClick={
                                                                         addSplit
                                                                     }
-                                                                    className='h-6 text-[10px] px-2 bg-white/5 hover:bg-white/10 rounded-md text-white'
+                                                                    className='h-7 text-xs px-2.5 bg-white/5 hover:bg-white/10 rounded-md text-white'
                                                                 >
-                                                                    <Plus className='h-3 w-3 mr-1' />{' '}
+                                                                    <Plus className='h-3 w-3 mr-1.5' />{' '}
                                                                     Add Rule
                                                                 </Button>
                                                             </div>
@@ -1363,23 +1346,23 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                             key={
                                                                                 idx
                                                                             }
-                                                                            className='p-3 border border-white/5 bg-black/40 rounded-xl space-y-3 relative group'
+                                                                            className='p-4 border border-white/10 bg-[#121212] rounded-xl space-y-4 relative group'
                                                                         >
                                                                             <Button
                                                                                 variant='ghost'
                                                                                 size='icon'
-                                                                                className='h-5 w-5 absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-neutral-500 hover:text-red-400'
+                                                                                className='h-6 w-6 absolute top-3 right-3 opacity-0 group-hover:opacity-100 text-neutral-500 hover:text-white bg-transparent hover:bg-white/10'
                                                                                 onClick={() =>
                                                                                     removeSplit(
                                                                                         idx,
                                                                                     )
                                                                                 }
                                                                             >
-                                                                                <Trash2 className='h-3 w-3' />
+                                                                                <Trash2 className='h-3.5 w-3.5' />
                                                                             </Button>
-                                                                            <div className='grid grid-cols-1 gap-3 pr-6'>
-                                                                                <div className='space-y-1'>
-                                                                                    <Label className='text-[9px] text-neutral-500 uppercase tracking-widest'>
+                                                                            <div className='grid grid-cols-1 gap-4 pr-8'>
+                                                                                <div className='space-y-1.5'>
+                                                                                    <Label className='text-[10px] text-neutral-500 uppercase tracking-wider font-medium'>
                                                                                         Target
                                                                                         DB
                                                                                     </Label>
@@ -1397,7 +1380,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                                             )
                                                                                         }
                                                                                     >
-                                                                                        <SelectTrigger className='h-7 text-[10px] bg-[#0A0A0F] border-white/5 text-white'>
+                                                                                        <SelectTrigger className='h-8 text-xs bg-[#0a0a0a] border-white/10 text-white focus:ring-1 focus:ring-white/20'>
                                                                                             <SelectValue />
                                                                                         </SelectTrigger>
                                                                                         <SelectContent>
@@ -1422,14 +1405,14 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                                         </SelectContent>
                                                                                     </Select>
                                                                                 </div>
-                                                                                <div className='space-y-1'>
-                                                                                    <Label className='text-[9px] text-neutral-500 uppercase tracking-widest'>
+                                                                                <div className='space-y-1.5'>
+                                                                                    <Label className='text-[10px] text-neutral-500 uppercase tracking-wider font-medium'>
                                                                                         Fields
                                                                                         (Click
                                                                                         to
                                                                                         toggle)
                                                                                     </Label>
-                                                                                    <div className='flex flex-wrap gap-1'>
+                                                                                    <div className='flex flex-wrap gap-1.5'>
                                                                                         {fields.map(
                                                                                             (
                                                                                                 f,
@@ -1458,7 +1441,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                                                                   ],
                                                                                                         )
                                                                                                     }
-                                                                                                    className={`cursor-pointer text-[9px] px-2 py-1 rounded border ${split.fields.includes(f.label) ? 'bg-primary/20 text-primary border-primary/30' : 'bg-white/5 border-transparent text-neutral-400 hover:bg-white/10'}`}
+                                                                                                    className={`cursor-pointer text-[10px] px-2.5 py-1 rounded-md border transition-all ${split.fields.includes(f.label) ? 'bg-white text-black border-white font-medium' : 'bg-white/5 border-white/10 text-neutral-400 hover:bg-white/10'}`}
                                                                                                 >
                                                                                                     {
                                                                                                         f.label
@@ -1469,7 +1452,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            <div className='flex items-center space-x-2 pt-2 border-t border-white/5'>
+                                                                            <div className='flex items-center space-x-2 pt-3 border-t border-white/10'>
                                                                                 <Switch
                                                                                     className='scale-75 origin-left'
                                                                                     checked={
@@ -1486,7 +1469,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                                         )
                                                                                     }
                                                                                 />
-                                                                                <Label className='text-[10px] text-neutral-400'>
+                                                                                <Label className='text-xs text-neutral-400'>
                                                                                     Exclude
                                                                                     from
                                                                                     Main
@@ -1504,10 +1487,10 @@ CLOUDINARY_URL=cloudinary://...`}
 
                                         {connector &&
                                             availableDatabases.length > 0 && (
-                                                <div className='space-y-6 pt-6 border-t border-white/5'>
+                                                <div className='space-y-6 pt-6 border-t border-white/10'>
                                                     <div>
-                                                        <h2 className='text-sm font-semibold text-white flex items-center gap-2'>
-                                                            <Shield className='w-4 h-4 text-orange-400' />{' '}
+                                                        <h2 className='text-sm font-medium text-white flex items-center gap-2'>
+                                                            <Shield className='w-4 h-4 text-neutral-400' />{' '}
                                                             Security
                                                             Transformations
                                                         </h2>
@@ -1518,11 +1501,11 @@ CLOUDINARY_URL=cloudinary://...`}
                                                         </p>
                                                     </div>
                                                     <div className='grid grid-cols-1 gap-4'>
-                                                        <div className='space-y-2 p-3 border border-white/5 bg-black/40 rounded-xl'>
-                                                            <Label className='text-[10px] font-semibold text-orange-400 uppercase tracking-wider'>
+                                                        <div className='space-y-2 p-4 border border-white/10 bg-[#121212] rounded-xl'>
+                                                            <Label className='text-[10px] font-medium text-neutral-400 uppercase tracking-wider'>
                                                                 Masking (****)
                                                             </Label>
-                                                            <div className='flex flex-wrap gap-1 min-h-[40px]'>
+                                                            <div className='flex flex-wrap gap-1.5 min-h-[40px]'>
                                                                 {fields.map(
                                                                     (f) => (
                                                                         <div
@@ -1548,7 +1531,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                                               ],
                                                                                 )
                                                                             }
-                                                                            className={`cursor-pointer text-[10px] px-2 py-1 rounded border ${maskedFields.includes(f.label) ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' : 'bg-white/5 border-transparent text-neutral-400 hover:bg-white/10'}`}
+                                                                            className={`cursor-pointer text-[10px] px-2.5 py-1 rounded-md border transition-all ${maskedFields.includes(f.label) ? 'bg-white text-black border-white font-medium' : 'bg-white/5 border-white/10 text-neutral-400 hover:bg-white/10'}`}
                                                                         >
                                                                             {
                                                                                 f.label
@@ -1558,11 +1541,11 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                 )}
                                                             </div>
                                                         </div>
-                                                        <div className='space-y-2 p-3 border border-white/5 bg-black/40 rounded-xl'>
-                                                            <Label className='text-[10px] font-semibold text-blue-400 uppercase tracking-wider'>
+                                                        <div className='space-y-2 p-4 border border-white/10 bg-[#121212] rounded-xl'>
+                                                            <Label className='text-[10px] font-medium text-neutral-400 uppercase tracking-wider'>
                                                                 Hashing (SHA256)
                                                             </Label>
-                                                            <div className='flex flex-wrap gap-1 min-h-[40px]'>
+                                                            <div className='flex flex-wrap gap-1.5 min-h-[40px]'>
                                                                 {fields.map(
                                                                     (f) => (
                                                                         <div
@@ -1588,7 +1571,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                                               ],
                                                                                 )
                                                                             }
-                                                                            className={`cursor-pointer text-[10px] px-2 py-1 rounded border ${hashedFields.includes(f.label) ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' : 'bg-white/5 border-transparent text-neutral-400 hover:bg-white/10'}`}
+                                                                            className={`cursor-pointer text-[10px] px-2.5 py-1 rounded-md border transition-all ${hashedFields.includes(f.label) ? 'bg-white text-black border-white font-medium' : 'bg-white/5 border-white/10 text-neutral-400 hover:bg-white/10'}`}
                                                                         >
                                                                             {
                                                                                 f.label
@@ -1601,58 +1584,76 @@ CLOUDINARY_URL=cloudinary://...`}
                                                     </div>
                                                 </div>
                                             )}
+                                        {/* Step footer */}
+                                        <div className='pt-8 flex items-center justify-between'>
+                                            <Button
+                                                variant='ghost'
+                                                onClick={() => setActiveTab('build')}
+                                                className='h-10 px-5 text-xs text-neutral-400 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2'
+                                            >
+                                                <ArrowLeft className='w-4 h-4' />
+                                                Back to Schema
+                                            </Button>
+                                            <Button
+                                                onClick={() => setActiveTab('embed')}
+                                                className='h-10 px-6 text-xs bg-white text-black hover:bg-neutral-200 rounded-lg flex items-center gap-2 font-medium shadow-lg shadow-white/5'
+                                            >
+                                                Continue to Integration
+                                                <ArrowRight className='w-4 h-4' />
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
 
                                 {/* EMBED TAB */}
                                 {activeTab === 'embed' && (
-                                    <div className='space-y-6 animate-in fade-in slide-in-from-left-2 duration-500 h-full flex flex-col'>
+                                    <div className='space-y-6 animate-in fade-in slide-in-from-left-2 duration-300 flex flex-col'>
                                         <div>
-                                            <h2 className='text-sm font-semibold text-white flex items-center gap-2'>
-                                                <Code className='w-4 h-4 text-green-400' />{' '}
+                                            <h2 className='text-sm font-medium text-white flex items-center gap-2'>
+                                                <Code className='w-4 h-4 text-neutral-400' />{' '}
                                                 Integration Code
                                             </h2>
                                             <p className='text-xs text-neutral-400 mt-1'>
-                                                Your form is ready to be
-                                                injected into any client.
+                                                Copy the snippet below and add
+                                                it to your app.
                                             </p>
                                         </div>
 
                                         {!generatedId ? (
-                                            <div className='flex-1 min-h-[300px] flex flex-col items-center justify-center border border-dashed border-white/10 rounded-2xl bg-black/20 text-center p-8'>
-                                                <AlertCircle className='h-10 w-10 text-neutral-600 mb-4' />
-                                                <p className='text-sm font-medium text-neutral-300 mb-2'>
+                                            <div className='flex-1 min-h-[300px] flex flex-col items-center justify-center border border-dashed border-white/10 rounded-2xl bg-[#121212] text-center p-8'>
+                                                <AlertCircle className='h-8 w-8 text-neutral-500 mb-4' />
+                                                <p className='text-sm font-medium text-white mb-2'>
                                                     Form not deployed yet
                                                 </p>
-                                                <p className='text-xs text-neutral-500 max-w-xs mb-6'>
+                                                <p className='text-xs text-neutral-400 max-w-xs mb-6'>
                                                     You need to deploy the form
                                                     to the network before
                                                     connection codes become
                                                     available.
                                                 </p>
-                                                <RainbowButton
+                                                <Button
                                                     onClick={handleSave}
-                                                    className='h-9 px-6 text-sm'
+                                                    className='h-9 px-6 text-sm bg-white text-black hover:bg-neutral-200 rounded-md'
                                                 >
                                                     Deploy Now
-                                                </RainbowButton>
+                                                </Button>
                                             </div>
                                         ) : (
                                             <div className='space-y-4'>
-                                                <div className='p-3 border border-indigo-500/30 bg-indigo-500/10 rounded-xl'>
-                                                    <Label className='text-[10px] text-indigo-300 uppercase tracking-wider'>
+                                                <div className='p-4 border border-white/10 bg-[#121212] rounded-xl'>
+                                                    <Label className='text-[10px] text-neutral-400 uppercase tracking-wider font-medium'>
                                                         Endpoint
                                                     </Label>
-                                                    <div className='flex items-center mt-1'>
+                                                    <div className='flex items-center mt-2'>
                                                         <input
                                                             readOnly
                                                             value={embedUrl}
-                                                            className='flex-1 bg-transparent text-xs text-indigo-100 outline-none'
+                                                            className='flex-1 bg-[#0a0a0a] border border-white/10 rounded-md px-3 h-8 text-xs text-white outline-none mr-2 focus:border-white/20'
                                                         />
                                                         <Button
                                                             size='icon'
                                                             variant='ghost'
-                                                            className='h-6 w-6 text-indigo-400 hover:text-indigo-300 hover:bg-white/5'
+                                                            className='h-8 w-8 text-neutral-400 hover:text-white hover:bg-white/5 border border-white/10 rounded-md'
                                                             onClick={() => {
                                                                 navigator.clipboard.writeText(
                                                                     embedUrl,
@@ -1663,26 +1664,26 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                 });
                                                             }}
                                                         >
-                                                            <Clipboard className='h-3 w-3' />
+                                                            <Clipboard className='h-3.5 w-3.5' />
                                                         </Button>
                                                     </div>
                                                 </div>
 
-                                                <div className='relative group border border-white/10 rounded-xl overflow-hidden bg-[#0A0A0F]'>
+                                                <div className='relative group border border-white/10 rounded-xl overflow-hidden bg-[#121212]'>
                                                     <Tabs
                                                         defaultValue='react'
                                                         className='w-full'
                                                     >
-                                                        <TabsList className='w-full flex bg-white/5 border-b border-white/5 p-0 h-auto rounded-none justify-start'>
+                                                        <TabsList className='w-full flex bg-[#0a0a0a] border-b border-white/10 p-0 h-auto rounded-none justify-start'>
                                                             <TabsTrigger
                                                                 value='react'
-                                                                className='text-[10px] rounded-none py-2 px-4 data-[state=active]:bg-white/10 data-[state=active]:text-white'
+                                                                className='text-xs rounded-none py-2.5 px-5 data-[state=active]:bg-[#121212] data-[state=active]:text-white data-[state=active]:border-b data-[state=active]:border-white'
                                                             >
                                                                 React / Next.js
                                                             </TabsTrigger>
                                                             <TabsTrigger
                                                                 value='html'
-                                                                className='text-[10px] rounded-none py-2 px-4 data-[state=active]:bg-white/10 data-[state=active]:text-white'
+                                                                className='text-xs rounded-none py-2.5 px-5 data-[state=active]:bg-[#121212] data-[state=active]:text-white data-[state=active]:border-b data-[state=active]:border-white'
                                                             >
                                                                 HTML snippet
                                                             </TabsTrigger>
@@ -1695,7 +1696,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                             <Button
                                                                 size='sm'
                                                                 variant='ghost'
-                                                                className='absolute top-2 right-2 h-6 px-2 text-[10px] text-neutral-400 hover:text-white bg-black/50'
+                                                                className='absolute top-3 right-3 h-7 px-3 text-[10px] text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-md border border-white/5'
                                                                 onClick={() => {
                                                                     navigator.clipboard.writeText(
                                                                         embedCodeReact,
@@ -1706,10 +1707,10 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                     });
                                                                 }}
                                                             >
-                                                                <Clipboard className='h-3 w-3 mr-1' />{' '}
+                                                                <Clipboard className='h-3 w-3 mr-1.5' />{' '}
                                                                 Copy
                                                             </Button>
-                                                            <pre className='p-4 pt-10 text-[10px] text-neutral-300 font-mono overflow-auto max-h-[350px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full'>
+                                                            <pre className='p-5 pt-12 text-xs text-neutral-300 font-mono overflow-auto max-h-[400px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full'>
                                                                 <code>
                                                                     {
                                                                         embedCodeReact
@@ -1725,7 +1726,7 @@ CLOUDINARY_URL=cloudinary://...`}
                                                             <Button
                                                                 size='sm'
                                                                 variant='ghost'
-                                                                className='absolute top-2 right-2 h-6 px-2 text-[10px] text-neutral-400 hover:text-white bg-black/50'
+                                                                className='absolute top-3 right-3 h-7 px-3 text-[10px] text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-md border border-white/5'
                                                                 onClick={() => {
                                                                     navigator.clipboard.writeText(
                                                                         embedCodeHTML,
@@ -1736,10 +1737,10 @@ CLOUDINARY_URL=cloudinary://...`}
                                                                     });
                                                                 }}
                                                             >
-                                                                <Clipboard className='h-3 w-3 mr-1' />{' '}
+                                                                <Clipboard className='h-3 w-3 mr-1.5' />{' '}
                                                                 Copy
                                                             </Button>
-                                                            <pre className='p-4 pt-10 text-[10px] text-neutral-300 font-mono overflow-auto max-h-[350px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full'>
+                                                            <pre className='p-5 pt-12 text-xs text-neutral-300 font-mono overflow-auto max-h-[400px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full'>
                                                                 <code>
                                                                     {
                                                                         embedCodeHTML
@@ -1751,38 +1752,37 @@ CLOUDINARY_URL=cloudinary://...`}
                                                 </div>
                                             </div>
                                         )}
+                                        {/* Step footer */}
+                                        <div className='pt-8 flex items-center justify-between'>
+                                            <Button
+                                                variant='ghost'
+                                                onClick={() => setActiveTab('settings')}
+                                                className='h-10 px-5 text-xs text-neutral-400 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2'
+                                            >
+                                                <ArrowLeft className='w-4 h-4' />
+                                                Back to Settings
+                                            </Button>
+                                            <Button
+                                                onClick={handleSave}
+                                                disabled={isSaving}
+                                                className='h-10 px-6 text-xs bg-white text-black hover:bg-neutral-200 rounded-lg flex items-center gap-2 font-medium shadow-lg shadow-white/5'
+                                            >
+                                                {isSaving ? 'Deploying…' : <><Save className='w-4 h-4 mr-1.5' />{initialData ? 'Update' : 'Deploy'}</>}
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
+                            </div>
                         </div>
 
-                        {/* Floating Action Button for Add Field */}
-                        {activeTab === 'build' && (
-                            <div className='absolute bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-500 pointer-events-none'>
-                                <Button
-                                    onClick={addField}
-                                    className='h-12 px-6 rounded-2xl bg-primary hover:bg-primary/90 text-white shadow-[0_0_25px_rgba(37,99,235,0.4)] border border-white/10 flex items-center gap-2 pointer-events-auto transition-all hover:scale-105 active:scale-95 group'
-                                >
-                                    <div className='w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:rotate-90 transition-transform duration-300'>
-                                        <Plus className='w-4 h-4' />
-                                    </div>
-                                    <span className='font-semibold text-sm tracking-wide'>
-                                        Add New Field
-                                    </span>
-                                </Button>
+                        {/* Right Panel: Live Preview Canvas */}
+                        <div
+                            className={`absolute xl:relative flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full flex justify-center p-4 md:p-6 transition-all duration-300 h-full w-full ${activeTab === 'preview' ? 'z-20' : 'opacity-0 xl:opacity-100 -z-10 xl:z-0'}`}
+                        >
+                            <div className='w-full flex justify-center items-start animate-in zoom-in-95 xl:zoom-in-100 duration-500'>
+                                {renderLivePreview()}
                             </div>
-                        )}
-                    </div>
-
-                    {/* Right Panel: Live Preview Canvas */}
-                    <div
-                        className={`absolute xl:relative flex-1 bg-gradient-to-br from-[#020205] to-[#0A0A10] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full flex items-start justify-center p-6 md:p-12 transition-all duration-300 h-full w-full ${activeTab === 'preview' ? 'z-20' : 'opacity-0 xl:opacity-100 -z-10 xl:z-0'}`}
-                    >
-                        {/* Grid Pattern Overlay */}
-                        <div className='absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none' />
-
-                        <div className='w-full min-h-full max-w-2xl flex justify-center items-start pt-12 md:pt-20 pb-12 relative z-10 animate-in zoom-in-95 xl:zoom-in-100 duration-700'>
-                            {renderLivePreview()}
                         </div>
                     </div>
                 </div>
