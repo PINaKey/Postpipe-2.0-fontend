@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
     Check, Copy, Terminal, ArrowRight, ShieldCheck,
-    AlertCircle, Eye, EyeOff, Loader2, Zap, Database, Server, Lock,
+    AlertCircle, AlertTriangle, Eye, EyeOff, Loader2, Zap, Database, Server, Lock,
     ChevronRight, Activity, Cpu, Key, FileCode, CheckCircle2, RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -510,7 +510,12 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                             >
                                                 <div className="absolute inset-0 bg-gradient-to-b from-[#F97316]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F97316] text-white transition-transform group-hover:scale-110 shadow-lg shadow-[#F97316]/20">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-8 w-8">
+                                                        <g fill="none" stroke="currentColor" strokeWidth="18" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M70 60 L150 105 L95 128 L150 151 L70 196"/>
+                                                            <path d="M165 196 H205"/>
+                                                        </g>
+                                                    </svg>
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-foreground">Deploy with Riven</p>
@@ -520,20 +525,7 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                         )}
                                     </div>
                                     
-                                    {connectorType === "fastapi" && (
-                                        <div className="mt-6 p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 shadow-sm">
-                                            <div className="flex gap-3">
-                                                <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5 text-amber-500" />
-                                                <div className="text-sm">
-                                                    <p className="font-bold">Important: Vercel Deployment Notice</p>
-                                                    <p className="mt-1 opacity-90 leading-relaxed">
-                                                        Vercel recently changed their Python builder to use <code className="bg-background/80 px-1 py-0.5 rounded font-mono text-xs mx-1">uv</code>. This is causing private repository cloning to fail. 
-                                                        You <strong className="font-semibold underline underline-offset-2">must</strong> add <code className="bg-background/80 px-1 py-0.5 rounded font-mono text-xs font-bold mx-1">ENABLE_UV=0</code> to your Vercel Environment Variables before deploying.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+
 
                                     <div className="flex gap-3 pt-6 border-t">
                                         <Button variant="ghost" onClick={() => saveState(2)} className="h-11">Back</Button>

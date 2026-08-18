@@ -47,6 +47,4 @@ test.html
 test-neumorphic.html
 resetpass.html
 PyPI-Recovery-Codes*
-.kontext/memory.db
-.kontext/memory.db
-.kontext/memory.db-wal
+.kontext/

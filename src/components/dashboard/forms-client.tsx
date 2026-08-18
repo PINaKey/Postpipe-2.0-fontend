@@ -92,6 +92,7 @@ import {
     CheckSquare,
     Square,
     GripVertical,
+    ArrowRight,
 } from 'lucide-react';
 import { generateSnippets } from '@/lib/snippet-generator';
 import { toast } from '@/hooks/use-toast';
@@ -1093,7 +1094,7 @@ export default function FormsClient(props: FormsClientProps) {
                                     {/* Details */}
                                     <div className='lg:col-span-2 flex flex-col gap-4'>
                                         <div>
-                                            <label className='text-[9px] font-bold uppercase tracking-widest text-neutral-500 dark:text-white/40 block mb-1.5 flex items-center gap-1.5'>
+                                            <label className='text-[9px] font-bold uppercase tracking-widest text-neutral-500 dark:text-white/40 mb-1.5 flex items-center gap-1.5'>
                                                 <Terminal className='h-3 w-3' />{' '}
                                                 ENDPOINT URL
                                             </label>
@@ -1242,8 +1243,7 @@ export default function FormsClient(props: FormsClientProps) {
                             </div>
                             <Link href='/dashboard/forms/new'>
                                 <RainbowButton className='h-10 rounded-lg px-6 text-sm font-semibold'>
-                                    <Plus className='mr-2 h-4 w-4' /> New
-                                    Endpoint
+                                    <Plus className='mr-2 h-4 w-4' /> New Endpoint
                                 </RainbowButton>
                             </Link>
                         </div>
@@ -1297,6 +1297,12 @@ export default function FormsClient(props: FormsClientProps) {
                                     value: presets.length,
                                     icon: Shield,
                                     color: 'text-amber-600 dark:text-amber-400',
+                                },
+                                {
+                                    label: 'RBAC Templates',
+                                    value: RBACSystems.length,
+                                    icon: ShieldAlert,
+                                    color: 'text-fuchsia-600 dark:text-fuchsia-400',
                                 },
                             ].map((s) => (
                                 <div
@@ -1543,10 +1549,12 @@ export default function FormsClient(props: FormsClientProps) {
                                     </p>
                                 </div>
                                 <Link href='/dashboard/forms/new'>
-                                    <Button className='rounded-xl mt-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold h-11 px-6 shadow-[0_0_20px_rgba(139,92,246,0.2)] transition-all'>
-                                        <Plus className='mr-2 h-4 w-4' /> Create
-                                        Endpoint
-                                    </Button>
+                                    <RainbowButton
+                                        className='h-12 w-full rounded-xl text-sm font-medium transition-all hover:scale-[1.02]'
+                                    >
+                                        Create Endpoint
+                                        <ArrowRight className='ml-2 h-4 w-4' />
+                                    </RainbowButton>
                                 </Link>
                             </div>
                         ) : (

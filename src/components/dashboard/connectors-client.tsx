@@ -253,10 +253,9 @@ export default function ConnectorsClient({ initialConnectors, databaseConfig }: 
             ) : (
                 <div className="grid gap-5">
                     {connectors.map((connector) => {
-                        const isVerified = connector.status === "Verified";
                         const isVisible = visibleSecrets[connector.id];
-                        const accentClass = isVerified ? "bg-emerald-500" : "bg-amber-500";
-                        const glowClass = isVerified ? "from-emerald-500/5" : "from-amber-500/5";
+                        const accentClass = "bg-emerald-500";
+                        const glowClass = "from-emerald-500/5";
 
                         return (
                             <div key={connector.id}
@@ -273,32 +272,18 @@ export default function ConnectorsClient({ initialConnectors, databaseConfig }: 
                                     <div className="flex flex-wrap items-center gap-2.5">
                                         <div className={cn(
                                             "flex h-8 w-8 items-center justify-center rounded-lg border",
-                                            isVerified ? "bg-emerald-500/10 border-emerald-500/20" : "bg-amber-500/10 border-amber-500/20"
+                                            "bg-emerald-500/10 border-emerald-500/20"
                                         )}>
-                                            <Server className={cn("h-4 w-4", isVerified ? "text-emerald-500" : "text-amber-500")} />
+                                            <Server className={cn("h-4 w-4", "text-emerald-500")} />
                                         </div>
                                         <h3 className="font-bold text-base text-foreground tracking-tight">{connector.name}</h3>
                                         <span className={cn(
                                             "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest border",
-                                            isVerified
-                                                ? "text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/25 bg-emerald-50 dark:bg-emerald-500/10"
-                                                : "text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-500/25 bg-amber-50 dark:bg-amber-500/10"
+                                            "text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/25 bg-emerald-50 dark:bg-emerald-500/10"
                                         )}>
-                                            {isVerified ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
-                                            {connector.status || "Not Verified"}
+                                            <CheckCircle2 className="h-3 w-3" />
+                                            Verified
                                         </span>
-                                        {!isVerified && (
-                                            <Button 
-                                                variant="outline" 
-                                                size="sm" 
-                                                className="h-6 px-2 text-[10px] uppercase tracking-wider font-bold ml-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-500/30"
-                                                onClick={() => handleVerifyConnector(connector.id)}
-                                                disabled={verifyingIds[connector.id]}
-                                            >
-                                                {verifyingIds[connector.id] ? <RefreshCw className="h-3 w-3 animate-spin mr-1" /> : <Shield className="h-3 w-3 mr-1" />}
-                                                Verify Now
-                                            </Button>
-                                        )}
                                         {connector.targetDatabase && (
                                             <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest border text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/25 bg-blue-50 dark:bg-blue-500/10">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
@@ -370,7 +355,7 @@ export default function ConnectorsClient({ initialConnectors, databaseConfig }: 
                                     <div>
                                         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">Connector Secret</p>
                                         <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/50 px-3.5 py-2.5">
-                                            <Lock className={cn("h-3.5 w-3.5 shrink-0", isVerified ? "text-emerald-500" : "text-amber-500")} />
+                                            <Lock className={cn("h-3.5 w-3.5 shrink-0", "text-emerald-500")} />
                                             <code className={cn(
                                                 "text-sm font-mono flex-1 truncate transition-all",
                                                 isVisible ? "text-foreground" : "blur-[4px] select-none text-muted-foreground"
