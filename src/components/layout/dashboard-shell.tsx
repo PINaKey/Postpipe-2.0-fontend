@@ -27,7 +27,7 @@ import backendSystemsIconData from "../../../public/logos/backendSystems.json";
 import formsIconData from "../../../public/logos/forms.json";
 import connectorIconData from "../../../public/logos/connector.json";
 import serverIconData from "../../../public/logos/Server.json";
-import logoutIconData from "../../../public/logos/Logout.json";
+import logoutIconData from "../../../public/logos/logout.json";
 import { AnimatedSidebarIcon } from "@/components/ui/animated-sidebar-icon";
 
 export default function DashboardShell({
