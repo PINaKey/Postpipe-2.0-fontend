@@ -30,27 +30,15 @@ export async function POST(req: NextRequest) {
     const octokit = await getInstallationOctokit(Number(installationId));
 
     // Call GitHub API to generate from template
-    let response;
-    try {
-      response = await octokit.request('POST /repos/{template_owner}/{template_repo}/generate', {
-        template_owner: templateOwner,
-        template_repo: templateRepo,
-        owner: installation.accountName,
-        name: newRepoName,
-        description: `Postpipe ${type.toUpperCase()} Connector created automatically via Postpipe App`,
-        include_all_branches: false,
-        private: false
-      });
-    } catch (apiError: any) {
-      // 403, 422, or 404 can be returned when the GitHub App lacks permissions (e.g. "Selected repositories" only)
-      if (apiError.status === 403 || apiError.status === 422 || apiError.status === 404) {
-        return NextResponse.json({ 
-          error: 'INSUFFICIENT_PERMISSIONS', 
-          details: 'The GitHub App may only have access to selected repositories. Postpipe needs permission for All Repositories to generate a new connector automatically.' 
-        }, { status: 403 });
-      }
-      throw apiError;
-    }
+    const response = await octokit.request('POST /repos/{template_owner}/{template_repo}/generate', {
+      template_owner: templateOwner,
+      template_repo: templateRepo,
+      owner: installation.accountName,
+      name: newRepoName,
+      description: `Postpipe ${type.toUpperCase()} Connector created automatically via Postpipe App`,
+      include_all_branches: false,
+      private: false
+    });
 
     const newRepoData = response.data;
 
