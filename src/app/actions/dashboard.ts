@@ -20,7 +20,9 @@ import {
   deleteRBACSystem,
   deleteAuthPreset,
   deleteSystem,
-  System
+  System,
+  updateConnectorUrl,
+  updateConnectorStatus
 } from '../../lib/server-db';
 import { ensureFullUrl } from '../../lib/utils';
 
@@ -396,4 +398,29 @@ export async function updateRBACSystemSettingsAction(systemId: string, updates: 
   const dbModule = await import('../../lib/server-db');
   await dbModule.updateRBACSystem(systemId, session.userId, updates);
   return { success: true };
+}
+
+export async function updateConnectorUrlAction(id: string, url: string) {
+  const session = await getSession();
+  if (!session || !session.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  await updateConnectorUrl(id, url, session.userId);
+  return { success: true };
+}
+
+export async function verifyConnectorAction(id: string) {
+  const session = await getSession();
+  if (!session || !session.userId) throw new Error("Unauthorized");
+
+  const connector = await getConnector(id);
+  if (!connector) return { success: false, error: "Connector not found" };
+
+  try {
+    await updateConnectorStatus(id, "Verified", session.userId);
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: `Could not update connector status. Error: ${e.message}` };
+  }
 }

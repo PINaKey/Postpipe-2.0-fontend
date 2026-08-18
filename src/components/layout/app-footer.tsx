@@ -4,7 +4,7 @@ import { AnimatedWords } from "../ui/animated-words";
 
 const productLinks = [
     { href: "/login", label: "Product" },
-    { href: "https://studio.postpipe.in", label: "Studio" },
+    { href: "https://kontext.postpipe.in", label: "KONTEXT" },
     { href: "/docs", label: "Docs" },
     { href: "/explore", label: "Dynamic" },
 ];
@@ -20,7 +20,6 @@ const contactEmails = [
     { label: "Souvik", email: "souvik.dev@postpipe.in" },
     { label: "Soyam", email: "soyam.dev@postpipe.in" },
     { label: "Pinaki", email: "cant-reveal@postpipe.in" },
-    { label: "Ayana", email: "To-Be-Decided@postpipe.in" },
 ];
 
 export function AppFooter() {
@@ -136,14 +135,14 @@ export function AppFooter() {
                         © {new Date().getFullYear()} Postpipe. Built with ❤️ in India.
                     </p>
                     <p className="text-xs text-muted-foreground/40">
-                        Made by Sourodip, Pinaki, Ayana, Souvik &amp; Soyam
+                        Made by Sourodip, Pinaki, Souvik &amp; Soyam
                     </p>
                 </div>
 
-                <div className="text-center">
+                <div className="text-center w-full flex justify-center overflow-hidden">
                     <AnimatedWords
                         text="PostPiPe"
-                        className="font-headline text-[11vw] md:text-[12rem] lg:text-[15rem] font-bold tracking-tighter leading-none whitespace-nowrap overflow-visible"
+                        className="font-headline text-[20vw] md:text-[22vw] lg:text-[24vw] font-bold tracking-tighter leading-none whitespace-nowrap"
                     />
                 </div>
             </div>

@@ -20,6 +20,45 @@ import {
 
 const releases = [
     {
+        title: "v3.0.0: New Form Builder, Connector Verification & Riven Deploy Partnership",
+        date: "August 17, 2026",
+        image: "https://res.cloudinary.com/dbaw86kzf/image/upload/v1786981389/36f21d7a-f2f2-4c6a-9383-92d0e1e4fd62.png",
+        excerpt:
+            "A massive update featuring a completely redesigned Form Builder, new connector verification flows, and an official partnership with Riven Deploy for seamless 1-click deployments.",
+        contributors: [
+            "https://github.com/Sourodip-1",
+        ],
+        content: (
+            <div className="prose dark:prose-invert max-w-none">
+                <h3>Postpipe x Riven Deploy Partnership</h3>
+                <p>
+                    We are thrilled to announce our official partnership with <strong>Riven Deploy</strong>!
+                    You can now deploy your FastAPI and Express connectors directly to Riven's high-performance infrastructure with a single click. 
+                </p>
+                <ul>
+                    <li><strong>1-Click Deployments</strong>: Integrated Riven Deploy button directly in the new connector setup wizard.</li>
+                    <li><strong>Optimized Infrastructure</strong>: Riven Deploy is perfectly tuned for Postpipe's connector architecture, ensuring maximum uptime and minimal latency.</li>
+                </ul>
+                <h3>Form Builder Redesign</h3>
+                <p>
+                    The Form Builder has been completely overhauled for a cleaner, premium SaaS feel.
+                </p>
+                <ul>
+                    <li><strong>Wizard Layout</strong>: A new step-by-step wizard layout for maximum focus, with a top stepper and a unified, clean interface.</li>
+                    <li><strong>SaaS Aesthetic</strong>: Darker, cleaner interface dropping the complex AI styling for a more professional, polished look.</li>
+                </ul>
+                <h3>Connector Verification</h3>
+                <p>
+                    Added a powerful new verification process for Connectors.
+                </p>
+                <ul>
+                    <li><strong>Live Verification</strong>: You can now verify that your deployed connector is reachable and correctly configured directly from the dashboard.</li>
+                    <li><strong>Status Tracking</strong>: Instant visual feedback with "Verified" and "Not Verified" status badges to keep track of your infrastructure.</li>
+                </ul>
+            </div>
+        ),
+    },
+    {
         title: "v2.2.1: Static Connector Page — New UI",
         date: "March 05, 2026",
         image: "https://res.cloudinary.com/dbaw86kzf/image/upload/v1772691336/bc797958-6363-4f3a-9e29-fe8dbe027384.png",

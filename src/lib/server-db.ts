@@ -19,6 +19,7 @@ export interface Connector {
     type?: 'mongodb' | 'postgres';
   }>;
   envPrefix?: string; // Optional prefix for env vars (e.g. "PROD")
+  status?: "Verified" | "Not Verified";
 }
 
 export interface UserConnectorsDocument {
@@ -121,7 +122,7 @@ export interface UserAuthPresetsDocument {
 // --- Persistence ---
 // NOTE: We check this lazily or let it fail at runtime in functions to allow build-time execution without env vars.
 
-const uri = process.env.MONGODB_URI;
+const uri = process.env.POSTPIPE_DB_URI || process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB_NAME || 'postpipe_core';
 const options = {};
 
@@ -158,6 +159,11 @@ export async function getDB() {
   const c = await getClientPromise();
   return c.db(dbName);
 }
+
+export async function connectDB() {
+  return await getDB();
+}
+
 
 // --- Connectors ---
 export async function registerConnector(url: string | null, name: string = 'My Connector', userId?: string, envPrefix?: string): Promise<Connector> {
@@ -216,6 +222,25 @@ export async function updateConnectorUrl(id: string, url: string, userId: string
   await db.collection<UserConnectorsDocument>('user_connectors').updateOne(
     { userId, "connectors.id": id },
     { $set: { "connectors.$.url": cleanUrl } }
+  );
+}
+
+export async function updateConnectorStatus(id: string, status: "Verified" | "Not Verified", userId: string): Promise<void> {
+  const db = await getDB();
+
+  // Verify ownership
+  const doc = await db.collection<UserConnectorsDocument>('user_connectors').findOne({
+    userId,
+    "connectors.id": id
+  });
+
+  if (!doc) {
+    throw new Error("Connector not found or unauthorized");
+  }
+
+  await db.collection<UserConnectorsDocument>('user_connectors').updateOne(
+    { userId, "connectors.id": id },
+    { $set: { "connectors.$.status": status } }
   );
 }
 

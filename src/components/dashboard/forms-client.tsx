@@ -48,6 +48,7 @@ import {
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
+    TooltipPortal,
 } from '@/components/ui/tooltip';
 import {
     Select,
@@ -91,11 +92,13 @@ import {
     CheckSquare,
     Square,
     GripVertical,
+    ArrowRight,
 } from 'lucide-react';
 import { generateSnippets } from '@/lib/snippet-generator';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { AnimatedEditIcon } from '@/components/ui/animated-edit-icon';
 import {
     deleteFormAction,
     duplicateFormAction,
@@ -300,12 +303,16 @@ export default function FormsClient(props: FormsClientProps) {
     const pendingDeletions = React.useRef<Record<string, any>>({});
 
     const searchParams = useSearchParams();
+    const [activeTab, setActiveTab] = React.useState(
+        searchParams.get('tab') === 'presets' ? 'presets' : 'endpoints'
+    );
 
     React.useEffect(() => {
         const tab = searchParams.get('tab');
+        if (tab === 'presets' || tab === 'endpoints' || tab === 'RBAC') {
+            setActiveTab(tab);
+        }
         if (tab === 'presets') {
-            // Since we're using Radix/Shadcn Tabs, we might need to control the state if we want to programmatically switch.
-            // But if we just want to open the 'isCreatingPreset' dialog if an action is specified:
             const action = searchParams.get('action');
             if (action === 'new-preset') {
                 setIsCreatingPreset(true);
@@ -958,6 +965,30 @@ export default function FormsClient(props: FormsClientProps) {
                                     </AlertDialogContent>
                                 </AlertDialog>
                             )}
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            size='icon'
+                                            variant='ghost'
+                                            className='h-7 w-7 rounded-md text-neutral-400 dark:text-white/25 hover:text-neutral-700 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/10 transition-all'
+                                            onClick={(e) => {
+                                                router.push(
+                                                    `/dashboard/forms/${form.id}/edit`,
+                                                );
+                                                e.stopPropagation();
+                                            }}
+                                        >
+                                            <AnimatedEditIcon className='h-[19px] w-[19px]' />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipPortal>
+                                        <TooltipContent>
+                                            Edit Form
+                                        </TooltipContent>
+                                    </TooltipPortal>
+                                </Tooltip>
+                            </TooltipProvider>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button
@@ -1063,7 +1094,7 @@ export default function FormsClient(props: FormsClientProps) {
                                     {/* Details */}
                                     <div className='lg:col-span-2 flex flex-col gap-4'>
                                         <div>
-                                            <label className='text-[9px] font-bold uppercase tracking-widest text-neutral-500 dark:text-white/40 block mb-1.5 flex items-center gap-1.5'>
+                                            <label className='text-[9px] font-bold uppercase tracking-widest text-neutral-500 dark:text-white/40 mb-1.5 flex items-center gap-1.5'>
                                                 <Terminal className='h-3 w-3' />{' '}
                                                 ENDPOINT URL
                                             </label>
@@ -1212,8 +1243,7 @@ export default function FormsClient(props: FormsClientProps) {
                             </div>
                             <Link href='/dashboard/forms/new'>
                                 <RainbowButton className='h-10 rounded-lg px-6 text-sm font-semibold'>
-                                    <Plus className='mr-2 h-4 w-4' /> New
-                                    Endpoint
+                                    <Plus className='mr-2 h-4 w-4' /> New Endpoint
                                 </RainbowButton>
                             </Link>
                         </div>
@@ -1268,6 +1298,12 @@ export default function FormsClient(props: FormsClientProps) {
                                     icon: Shield,
                                     color: 'text-amber-600 dark:text-amber-400',
                                 },
+                                {
+                                    label: 'RBAC Templates',
+                                    value: RBACSystems.length,
+                                    icon: ShieldAlert,
+                                    color: 'text-fuchsia-600 dark:text-fuchsia-400',
+                                },
                             ].map((s) => (
                                 <div
                                     key={s.label}
@@ -1295,32 +1331,52 @@ export default function FormsClient(props: FormsClientProps) {
 
                 {/* ══ TABS ══ */}
                 <Tabs
-                    defaultValue={
-                        searchParams.get('tab') === 'presets'
-                            ? 'presets'
-                            : 'endpoints'
-                    }
+                    value={activeTab}
+                    onValueChange={setActiveTab}
                     className='w-full'
                 >
                     <div className='flex items-center justify-between gap-4 flex-wrap mb-6'>
-                        <TabsList className='bg-muted dark:bg-white/[0.06] rounded-lg h-10 p-1 gap-1'>
+                        <TabsList className='relative flex bg-muted dark:bg-white/[0.06] rounded-lg h-10 p-1 w-full max-w-[420px] border-none select-none'>
+                            {/* Single active indicator layer sliding symmetrically using transform-only (x) */}
+                            <motion.div
+                                className='absolute inset-y-1 rounded-md bg-white dark:bg-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),_0_2px_4px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),_0_2px_4px_rgba(0,0,0,0.2)] border border-neutral-200/50 dark:border-white/5 backdrop-blur-sm z-0'
+                                style={{
+                                    width: 'calc((100% - 8px) / 3)',
+                                    left: 4,
+                                }}
+                                animate={{
+                                    x: activeTab === 'endpoints' ? '0%' : activeTab === 'presets' ? '100%' : '200%'
+                                }}
+                                transition={{
+                                    type: 'tween',
+                                    ease: [0.16, 1, 0.3, 1],
+                                    duration: 0.38
+                                }}
+                            />
+
                             <TabsTrigger
                                 value='endpoints'
-                                className='rounded-lg text-xs font-semibold data-[state=active]:bg-background dark:data-[state=active]:bg-white/10 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm text-muted-foreground px-4 h-8 transition-all'
+                                className='relative flex-1 rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent dark:data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 h-8 transition-colors select-none z-10'
                             >
-                                <Globe className='mr-2 h-3.5 w-3.5' /> Endpoints
+                                <span className='flex items-center justify-center'>
+                                    <Globe className='mr-2 h-3.5 w-3.5' /> Endpoints
+                                </span>
                             </TabsTrigger>
                             <TabsTrigger
                                 value='presets'
-                                className='rounded-lg text-xs font-semibold data-[state=active]:bg-background dark:data-[state=active]:bg-white/10 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm text-muted-foreground px-4 h-8 transition-all'
+                                className='relative flex-1 rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent dark:data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 h-8 transition-colors select-none z-10'
                             >
-                                <Shield className='mr-2 h-3.5 w-3.5' /> Auth Presets
+                                <span className='flex items-center justify-center'>
+                                    <Shield className='mr-2 h-3.5 w-3.5' /> Auth Presets
+                                </span>
                             </TabsTrigger>
                             <TabsTrigger
                                 value='RBAC'
-                                className='rounded-lg text-xs font-semibold data-[state=active]:bg-background dark:data-[state=active]:bg-white/10 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm text-muted-foreground px-4 h-8 transition-all'
+                                className='relative flex-1 rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent dark:data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 h-8 transition-colors select-none z-10'
                             >
-                                <ShieldAlert className='mr-2 h-3.5 w-3.5' /> RBAC Systems
+                                <span className='flex items-center justify-center'>
+                                    <ShieldAlert className='mr-2 h-3.5 w-3.5' /> RBAC Systems
+                                </span>
                             </TabsTrigger>
                         </TabsList>
                     </div>
@@ -1339,7 +1395,7 @@ export default function FormsClient(props: FormsClientProps) {
                                     value={connectorFilter}
                                     onValueChange={setConnectorFilter}
                                 >
-                                    <SelectTrigger className='h-10 rounded-lg bg-muted border-border text-xs text-muted-foreground w-[150px] focus:ring-violet-500/40 hover:bg-accent transition-colors'>
+                                    <SelectTrigger className='h-10 rounded-lg bg-muted border-border text-xs text-muted-foreground w-[150px] focus:ring-1 focus:ring-neutral-400 dark:focus:ring-neutral-700 hover:bg-accent hover:text-foreground transition-colors'>
                                         <Power className='mr-2 h-3.5 w-3.5' />
                                         <SelectValue placeholder='All Connectors' />
                                     </SelectTrigger>
@@ -1361,7 +1417,7 @@ export default function FormsClient(props: FormsClientProps) {
                                     value={dbFilter}
                                     onValueChange={setDbFilter}
                                 >
-                                    <SelectTrigger className='h-10 rounded-lg bg-muted border-border text-xs text-muted-foreground w-[150px] focus:ring-violet-500/40 hover:bg-accent transition-colors'>
+                                    <SelectTrigger className='h-10 rounded-lg bg-muted border-border text-xs text-muted-foreground w-[150px] focus:ring-1 focus:ring-neutral-400 dark:focus:ring-neutral-700 hover:bg-accent hover:text-foreground transition-colors'>
                                         <Database className='mr-2 h-3.5 w-3.5' />
                                         <SelectValue placeholder='All Databases' />
                                     </SelectTrigger>
@@ -1380,7 +1436,7 @@ export default function FormsClient(props: FormsClientProps) {
                                     value={statusFilter}
                                     onValueChange={setStatusFilter}
                                 >
-                                    <SelectTrigger className='h-10 rounded-lg bg-muted border-border text-xs text-muted-foreground w-[120px] focus:ring-violet-500/40 hover:bg-accent transition-colors'>
+                                    <SelectTrigger className='h-10 rounded-lg bg-muted border-border text-xs text-muted-foreground w-[120px] focus:ring-1 focus:ring-neutral-400 dark:focus:ring-neutral-700 hover:bg-accent hover:text-foreground transition-colors'>
                                         <Filter className='mr-2 h-3.5 w-3.5' />
                                         <SelectValue />
                                     </SelectTrigger>
@@ -1400,7 +1456,7 @@ export default function FormsClient(props: FormsClientProps) {
                                     value={sortBy}
                                     onValueChange={setSortBy}
                                 >
-                                    <SelectTrigger className='h-10 rounded-lg bg-muted border-border text-xs text-muted-foreground w-[140px] focus:ring-violet-500/40 hover:bg-accent transition-colors'>
+                                    <SelectTrigger className='h-10 rounded-lg bg-muted border-border text-xs text-muted-foreground w-[140px] focus:ring-1 focus:ring-neutral-400 dark:focus:ring-neutral-700 hover:bg-accent hover:text-foreground transition-colors'>
                                         <ArrowUpDown className='mr-2 h-3.5 w-3.5' />
                                         <SelectValue />
                                     </SelectTrigger>
@@ -1493,10 +1549,12 @@ export default function FormsClient(props: FormsClientProps) {
                                     </p>
                                 </div>
                                 <Link href='/dashboard/forms/new'>
-                                    <Button className='rounded-xl mt-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold h-11 px-6 shadow-[0_0_20px_rgba(139,92,246,0.2)] transition-all'>
-                                        <Plus className='mr-2 h-4 w-4' /> Create
-                                        Endpoint
-                                    </Button>
+                                    <RainbowButton
+                                        className='h-12 w-full rounded-xl text-sm font-medium transition-all hover:scale-[1.02]'
+                                    >
+                                        Create Endpoint
+                                        <ArrowRight className='ml-2 h-4 w-4' />
+                                    </RainbowButton>
                                 </Link>
                             </div>
                         ) : (

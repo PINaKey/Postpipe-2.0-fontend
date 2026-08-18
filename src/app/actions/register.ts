@@ -42,3 +42,28 @@ export async function finalizeConnectorAction(id: string, url: string) {
     return { error: 'Failed to verify connector' };
   }
 }
+
+export async function getUserGitHubInstallations() {
+  try {
+    const session = await getSession();
+    if (!session || !session.userId) {
+      return { error: 'Unauthorized' };
+    }
+
+    const { connectDB } = await import('../../lib/server-db');
+    const db = await connectDB();
+    
+    // Find all installations for this user
+    const installations = await db.collection('github_installations')
+      .find({ userId: session.userId })
+      .sort({ updatedAt: -1 })
+      .toArray();
+      
+    return { 
+      success: true, 
+      installations: JSON.parse(JSON.stringify(installations)) 
+    };
+  } catch (e) {
+    return { error: 'Failed to fetch installations' };
+  }
+}

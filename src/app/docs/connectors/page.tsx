@@ -92,8 +92,8 @@ export default function ConnectorsPage() {
                             bg: "bg-blue-500/10 border-blue-500/20",
                             body: <>
                                 Fork the official connector template:
-                                <a href="https://github.com/Sourodip-1/postpipe-connector-template" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 underline underline-offset-2 hover:text-blue-400">
-                                    github.com/Sourodip-1/postpipe-connector-template
+                                <a href="https://github.com/PostPipe/postpipe-connector-template" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 underline underline-offset-2 hover:text-blue-400">
+                                    github.com/PostPipe/postpipe-connector-template
                                 </a>.
                                 Deploy the fork to <strong>Vercel</strong> or <strong>Azure</strong>, adding the following environment variables during setup:
                                 <pre className="mt-3 text-xs font-mono bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-neutral-300 leading-relaxed overflow-x-auto">
