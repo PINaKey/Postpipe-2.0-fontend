@@ -40,6 +40,7 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
     const [showSecret, setShowSecret] = useState(false);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [isDashboardReady, setIsDashboardReady] = useState(false);
+    const [repoCreationError, setRepoCreationError] = useState<{type: 'permissions' | 'general', message: string} | null>(null);
 
     // Load persisted state on mount and when user session resolves
     useEffect(() => {
@@ -94,14 +95,17 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
         if (typeof window !== "undefined") {
             const params = new URLSearchParams(window.location.search);
             const instId = params.get("installation_id");
-            if (instId && step === 2 && connectorData && !isCreatingRepo) {
+            if (instId) {
+                setExistingInstallationId(instId);
                 // Remove param from URL without refreshing
                 window.history.replaceState({}, document.title, window.location.pathname);
-                setExistingInstallationId(instId);
-                handleCreateRepo(instId);
+                
+                if (step === 2 && connectorData && !isCreatingRepo) {
+                    handleCreateRepo(instId);
+                }
             }
         }
-    }, [step, connectorData]);
+    }, [step, connectorData, isCreatingRepo]);
 
     const persistItem = (key: string, value: string | null) => {
         if (typeof window === "undefined") return;
@@ -197,6 +201,7 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
 
     const handleCreateRepo = async (installationId: string) => {
         setIsCreatingRepo(true);
+        setRepoCreationError(null);
         try {
             const res = await fetch('/api/github/create-repo', {
                 method: 'POST',
@@ -209,9 +214,15 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                 saveState(3, undefined, data.repoUrl);
                 toast({ title: "Repository Created!", description: "Your new connector code is ready on GitHub." });
             } else {
-                toast({ title: "Error", description: data.error, variant: "destructive" });
+                if (data.error === 'INSUFFICIENT_PERMISSIONS') {
+                    setRepoCreationError({ type: 'permissions', message: data.details });
+                } else {
+                    setRepoCreationError({ type: 'general', message: data.error || "Failed to create repository." });
+                    toast({ title: "Error", description: data.error || "Failed to create repository.", variant: "destructive" });
+                }
             }
         } catch (err) {
+            setRepoCreationError({ type: 'general', message: "Failed to create repository." });
             toast({ title: "Error", description: "Failed to create repository.", variant: "destructive" });
         } finally {
             setIsCreatingRepo(false);
@@ -411,6 +422,22 @@ export default function StaticConnectorClient({ liveConnectorsCount = 0 }: { liv
                                     )}
 
                                     <div className="pt-4 space-y-3">
+                                        {repoCreationError && repoCreationError.type === 'permissions' && (
+                                            <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-4 text-sm text-red-500 mb-4 animate-in fade-in">
+                                                <div className="flex gap-2 items-start">
+                                                    <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                                                    <div className="space-y-2">
+                                                        <p className="font-semibold">Insufficient GitHub Permissions</p>
+                                                        <p className="text-red-500/90 text-xs">
+                                                            {repoCreationError.message}
+                                                        </p>
+                                                        <p className="text-red-500/90 text-xs">
+                                                            To fix this, go to your <a href="https://github.com/settings/installations" target="_blank" rel="noreferrer" className="underline font-medium hover:text-red-400">GitHub Settings</a>, select Postpipe Connector, and change Repository access to <strong>All repositories</strong>. Alternatively, you can use the <strong>Skip to Deploy</strong> link below.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                         {existingInstallationId ? (
                                             <Button 
                                                 onClick={() => handleCreateRepo(existingInstallationId)}

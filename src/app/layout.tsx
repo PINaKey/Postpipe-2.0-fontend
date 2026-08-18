@@ -6,7 +6,6 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { SmoothScroller } from '@/components/layout/smooth-scroller';
 import { Header2 } from '@/components/ui/header-2';
 import { AnimatedFooter } from '@/components/layout/animated-footer';
-import { NavigationSplash } from '@/components/layout/navigation-splash';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.postpipe.in'),
@@ -127,7 +126,6 @@ export default function RootLayout({
               <AnimatedFooter />
             </SmoothScroller>
             <Toaster />
-            <NavigationSplash />
           </AuthProvider>
         </ThemeProvider>
       </body>
