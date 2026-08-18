@@ -49,7 +49,7 @@ export class TemplateUpdateService {
   /**
    * Propagates a template update to all generated repositories of a specific type.
    */
-  static async propagateUpdate(type: string, newVersion: string) {
+  static async propagateUpdate(type: string, newVersion: string, templateOwner: string = 'PostPipe', templateBranch: string = 'main') {
     if (type === 'js') type = 'express'; // normalize
     const templateRepoName = TEMPLATES[type];
     if (!templateRepoName) {
@@ -76,15 +76,16 @@ export class TemplateUpdateService {
     
     try {
       // Get the default branch commit
-      const { data: branchData } = await publicOctokit.request('GET /repos/{owner}/{repo}/branches/main', {
-        owner: TEMPLATE_OWNER,
-        repo: templateRepoName
+      const { data: branchData } = await publicOctokit.request('GET /repos/{owner}/{repo}/branches/{branch}', {
+        owner: templateOwner,
+        repo: templateRepoName,
+        branch: templateBranch
       });
       const templateCommitSha = branchData.commit.sha;
 
       // Get recursive tree
       const { data: treeData } = await publicOctokit.request('GET /repos/{owner}/{repo}/git/trees/{tree_sha}', {
-        owner: TEMPLATE_OWNER,
+        owner: templateOwner,
         repo: templateRepoName,
         tree_sha: templateCommitSha,
         recursive: '1'
@@ -96,7 +97,7 @@ export class TemplateUpdateService {
       if (managedJsonItem) {
         try {
           const { data: managedJsonBlob } = await publicOctokit.request('GET /repos/{owner}/{repo}/git/blobs/{file_sha}', {
-            owner: TEMPLATE_OWNER,
+            owner: templateOwner,
             repo: templateRepoName,
             file_sha: managedJsonItem.sha
           });
@@ -123,7 +124,7 @@ export class TemplateUpdateService {
     for (const item of templateTreeItems) {
       try {
         const { data: blobData } = await publicOctokit.request('GET /repos/{owner}/{repo}/git/blobs/{file_sha}', {
-          owner: TEMPLATE_OWNER,
+          owner: templateOwner,
           repo: templateRepoName,
           file_sha: item.sha
         });

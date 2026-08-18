@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Ignored push to non-default branch' });
     }
 
+    const repoOwner = payload.repository?.owner?.login || payload.repository?.owner?.name || 'PostPipe';
     const repoName = payload.repository?.name;
     let templateType: string | null = null;
 
@@ -54,11 +55,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Determine the "new version" based on the commit SHA or we can just bump a timestamp
-    // Ideally the template repository has a .postpipe-version or we derive it from commit
-    const newVersion = payload.head_commit?.id.substring(0, 7) || Date.now().toString();
+    const newVersion = payload.head_commit?.id?.substring(0, 7) || Date.now().toString();
 
     // Trigger update asynchronously so we don't timeout the webhook response
-    TemplateUpdateService.propagateUpdate(templateType, newVersion).catch(err => {
+    TemplateUpdateService.propagateUpdate(templateType, newVersion, repoOwner, defaultBranch).catch(err => {
       console.error(`Async propagation failed for ${templateType}:`, err);
     });
 
