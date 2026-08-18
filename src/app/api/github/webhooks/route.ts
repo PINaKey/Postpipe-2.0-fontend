@@ -57,14 +57,17 @@ export async function POST(req: NextRequest) {
     // Determine the "new version" based on the commit SHA or we can just bump a timestamp
     const newVersion = payload.head_commit?.id?.substring(0, 7) || Date.now().toString();
 
-    // Trigger update asynchronously so we don't timeout the webhook response
-    TemplateUpdateService.propagateUpdate(templateType, newVersion, repoOwner, defaultBranch).catch(err => {
-      console.error(`Async propagation failed for ${templateType}:`, err);
-    });
+    console.log(`[Webhook] Processing push event. Repo: ${repoName}, Owner: ${repoOwner}, Branch: ${defaultBranch}, Type: ${templateType}, Version: ${newVersion}`);
+
+    // Await the update so we can return the exact results in the response for debugging
+    const result = await TemplateUpdateService.propagateUpdate(templateType, newVersion, repoOwner, defaultBranch);
+    
+    console.log('[Webhook] Propagation result:', result);
 
     return NextResponse.json({
       success: true,
-      message: `Triggered update for ${templateType} with version ${newVersion}`
+      message: `Completed update for ${templateType} with version ${newVersion}`,
+      result
     });
   } catch (error: any) {
     console.error('Error handling GitHub webhook:', error);
