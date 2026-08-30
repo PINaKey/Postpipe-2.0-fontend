@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Mail, Instagram, Github } from "lucide-react";
+import { Mail, Instagram, Github, Coffee } from "lucide-react";
 import { AnimatedWords } from "../ui/animated-words";
 
 const productLinks = [
     { href: "/login", label: "Product" },
-    { href: "https://kontext.postpipe.in", label: "KONTEXT" },
+    { href: "https://kontext.postpipe.in", label: "Kontext" },
     { href: "/docs", label: "Docs" },
     { href: "/explore", label: "Dynamic" },
 ];
@@ -17,8 +17,6 @@ const resourceLinks = [
 
 const contactEmails = [
     { label: "Founder", email: "founder@postpipe.in" },
-    { label: "Souvik", email: "souvik.dev@postpipe.in" },
-    { label: "Soyam", email: "soyam.dev@postpipe.in" },
     { label: "Pinaki", email: "cant-reveal@postpipe.in" },
 ];
 
@@ -124,6 +122,21 @@ export function AppFooter() {
                                         <p className="text-[10px] text-muted-foreground/60 mt-0.5">Open source · PRs welcome</p>
                                     </div>
                                 </a>
+                                
+                                <a
+                                    href="https://buymeacoffee.com/sourodip"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="group flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 group-hover:bg-[#FFDD00]/10 group-hover:border-[#FFDD00]/30 transition-all">
+                                        <Coffee className="h-4 w-4 group-hover:text-[#FFDD00] transition-colors" />
+                                    </span>
+                                    <div>
+                                        <p className="font-medium text-foreground/80 group-hover:text-foreground leading-none">Support This Project</p>
+                                        <p className="text-[10px] text-muted-foreground/60 mt-0.5">Buy me a coffee</p>
+                                    </div>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -135,7 +148,7 @@ export function AppFooter() {
                         © {new Date().getFullYear()} Postpipe. Built with ❤️ in India.
                     </p>
                     <p className="text-xs text-muted-foreground/40">
-                        Made by Sourodip, Pinaki, Souvik &amp; Soyam
+                        Maintained by Sourodip &amp; Pinaki
                     </p>
                 </div>
 

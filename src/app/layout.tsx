@@ -112,7 +112,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased overflow-x-hidden">
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -122,7 +122,7 @@ export default function RootLayout({
           <AuthProvider>
             <Header2 />
             <SmoothScroller>
-              <main className="flex-1">{children}</main>
+              <main className="flex-1 overflow-x-hidden">{children}</main>
               <AnimatedFooter />
             </SmoothScroller>
             <Toaster />
