@@ -10,6 +10,8 @@ export const metadata: Metadata = {
     title: 'Explore',
 };
 
+export const dynamic = 'force-dynamic';
+
 type Props = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
