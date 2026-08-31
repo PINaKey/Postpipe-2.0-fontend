@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mail, Instagram, Github, Coffee } from "lucide-react";
 import { AnimatedWords } from "../ui/animated-words";
+import { WordRotate } from "@/components/ui/word-rotate";
 
 const productLinks = [
     { href: "/login", label: "Product" },
@@ -122,7 +123,7 @@ export function AppFooter() {
                                         <p className="text-[10px] text-muted-foreground/60 mt-0.5">Open source · PRs welcome</p>
                                     </div>
                                 </a>
-                                
+
                                 <a
                                     href="https://buymeacoffee.com/sourodip"
                                     target="_blank"
@@ -142,6 +143,19 @@ export function AppFooter() {
                     </div>
                 </div>
 
+                {/* Rotating endpoint showcase */}
+                <div className="mb-10 flex flex-col items-center justify-center">
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground/40 mb-5 text-center font-mono">Route anything. Capture everything.</p>
+                    <div className="flex items-baseline justify-center gap-0 font-mono">
+                        <span className="text-2xl sm:text-3xl md:text-4xl text-muted-foreground/30 font-medium">postpipe.in/submissions/</span>
+                        <WordRotate
+                            className="text-2xl sm:text-3xl md:text-4xl text-foreground/80 font-bold"
+                            words={["feedback", "waitlist", "contact", "newsletter", "surveys", "users"]}
+                            duration={2000}
+                        />
+                    </div>
+                </div>
+
                 {/* Bottom divider + legal */}
                 <div className="border-t border-border/50 pt-8 mb-16 md:mb-24 flex flex-col md:flex-row items-center justify-between gap-4">
                     <p className="text-xs text-muted-foreground/50">
@@ -154,7 +168,7 @@ export function AppFooter() {
 
                 <div className="text-center w-full flex justify-center overflow-hidden">
                     <AnimatedWords
-                        text="PostPiPe"
+                        text="PostPipe"
                         className="font-headline text-[20vw] md:text-[22vw] lg:text-[24vw] font-bold tracking-tighter leading-none whitespace-nowrap"
                     />
                 </div>

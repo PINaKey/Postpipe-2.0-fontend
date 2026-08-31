@@ -20,7 +20,8 @@ import { PathSelection } from '@/components/layout/path-selection';
 import { HowItWorks } from '@/components/layout/how-it-works';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { PricingSection } from '@/components/layout/pricing-section';
-
+import { Marquee } from '@/components/ui/marquee';
+import { LanyardMakers } from '@/components/ui/lanyard-makers';
 
 const heroImage = PlaceHolderImages.find((img) => img.id === 'hero-image');
 
@@ -165,9 +166,11 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <div className="w-full bg-background relative overflow-hidden">
+        <Marquee text="Scale Infinite • Zero Infrastructure • PostPipe • " repeat={4} duration={40} fontSize="xl" />
+      </div>
 
       <PricingSection />
-
       <section id="faq" className="bg-background py-20 md:py-32">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="mb-12 text-center">
@@ -193,20 +196,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="makers" className="py-20 md:py-32 overflow-hidden bg-background">
-        <div className="container mx-auto px-4">
-          <div className="mb-12 text-center">
-            <h2 className="font-headline text-3xl md:text-5xl font-bold mb-4">
-              Meet the Makers
-            </h2>
-            <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto">
-              Built by developers, for developers. We are passionate about open source and creating tools that empower the community.
-            </p>
-          </div>
-
-          <TerminalMakers />
-        </div>
-      </section>
+      <LanyardMakers />
     </>
   );
 }

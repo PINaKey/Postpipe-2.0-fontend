@@ -103,11 +103,11 @@ export default function DashboardShell({
     return (
         <div className={cn(
             "rounded-md flex flex-col md:flex-row bg-gray-100 dark:bg-neutral-800 w-full flex-1 mx-auto border border-neutral-200 dark:border-neutral-700 overflow-hidden",
-            "h-screen pt-16" // Start below global header
+            "h-[calc(100vh-4rem)]" // Fits perfectly below the 4rem sticky header without scrolling
         )}>
             <Sidebar open={open} setOpen={setOpen}>
                 <SidebarBody className="justify-between gap-10">
-                    <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+                    <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden" data-lenis-prevent="true">
                         {/* Logo Removed as requested */}
                         <div className="mt-8 flex flex-col gap-2">
                             {navItems.map((link, idx) => (
@@ -151,7 +151,10 @@ export default function DashboardShell({
 
             {/* Main Content Area */}
             <div className="flex flex-1 overflow-hidden">
-                <div className="p-2 pt-20 md:p-10 md:pt-10 md:bg-white md:dark:bg-neutral-900 flex flex-col gap-2 flex-1 w-full h-full overflow-y-auto overflow-x-hidden">
+                <div 
+                    className="p-2 md:p-10 md:bg-white md:dark:bg-neutral-900 flex flex-col gap-2 flex-1 w-full h-full overflow-y-auto overflow-x-hidden"
+                    data-lenis-prevent="true"
+                >
                     {children}
                 </div>
             </div>
