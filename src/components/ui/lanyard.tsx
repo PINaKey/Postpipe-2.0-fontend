@@ -34,7 +34,8 @@ export default function Lanyard({
   fov = 20,
   transparent = true,
   items = [],
-  className = ''
+  className = '',
+  isInView = true,
 }: any) {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -48,13 +49,15 @@ export default function Lanyard({
   return (
     <div className={`relative z-0 w-full h-full flex justify-center items-center ${className}`}>
       <Canvas
+        frameloop={isInView ? 'always' : 'never'}
         camera={{ position: position, fov: fov }}
-        dpr={[1, isMobile ? 1.5 : 2]}
-        gl={{ alpha: transparent }}
+        dpr={[1, 1.2]}
+        gl={{ alpha: transparent, antialias: false, powerPreference: "high-performance" }}
+        performance={{ min: 0.5 }}
         onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1)}
       >
         <ambientLight intensity={Math.PI} />
-        <Physics gravity={gravity} timeStep={isMobile ? 1 / 30 : 1 / 60}>
+        <Physics gravity={gravity} timeStep={isMobile ? 1 / 30 : 1 / 60} paused={!isInView}>
           {items.map((item: any, i: number) => (
             <Band
               key={i}

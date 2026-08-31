@@ -35,7 +35,8 @@ export async function GET(req: NextRequest) {
         }
 
         await dbConnect();
-        const user = await User.findById(userId).select('-password -__v -forgotPasswordToken -verifyToken -resetTokenHash');
+        const { ObjectId } = await import('mongodb');
+        const user = await User.collection.findOne({ _id: new ObjectId(userId) });
 
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -51,7 +52,10 @@ export async function GET(req: NextRequest) {
             name: user.name,
             email: user.email,
             provider: provider,
-            image: user.image
+            image: user.image,
+            plan: user.plan || 'starter',
+            monthlySubmissions: user.monthlySubmissions || 0,
+            usageResetDate: user.usageResetDate
         }, { status: 200 });
 
     } catch (error) {

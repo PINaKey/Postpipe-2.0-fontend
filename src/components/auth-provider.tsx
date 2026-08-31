@@ -10,6 +10,9 @@ type User = {
   name: string;
   email: string;
   image?: string;
+  plan?: string;
+  monthlySubmissions?: number;
+  usageResetDate?: string;
 };
 
 export type AuthContextType = {

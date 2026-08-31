@@ -2,7 +2,8 @@
 
 import Lanyard from "./lanyard";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useInView } from "framer-motion";
 
 const makers = [
   { name: "Sourodip", role: "Founder", username: "sourodip-1", color: "#10b981" },
@@ -36,9 +37,11 @@ const photoMap: Record<string, string> = {
 
 export function LanyardMakers() {
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const containerRef = useRef<HTMLElement>(null);
+  const isInView = useInView(containerRef, { margin: "400px 0px" });
 
   return (
-    <section id="makers" className="relative w-full overflow-hidden bg-zinc-950 md:h-[100vh] md:min-h-[800px] h-[550px] py-10 md:py-0">
+    <section ref={containerRef} id="makers" className="relative w-full overflow-hidden bg-zinc-950 md:h-[100vh] md:min-h-[800px] h-[550px] py-10 md:py-0">
 
       {/* Background Text */}
       <div className="absolute inset-0 flex flex-col items-center justify-center z-0 px-4 pointer-events-none opacity-40">
@@ -53,6 +56,7 @@ export function LanyardMakers() {
       {/* 3D Lanyards Container (Desktop Only) */}
       <div className="hidden md:block absolute inset-0 pointer-events-auto z-10 cursor-grab active:cursor-grabbing touch-none">
         <Lanyard
+          isInView={isInView}
           position={[0, 0, 22]}
           gravity={[0, -40, 0]}
           items={makers.map((maker, idx) => {

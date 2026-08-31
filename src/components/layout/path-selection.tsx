@@ -10,15 +10,15 @@ import Image from "next/image";
 
 // Workflow Data
 const staticSteps = [
-  { id: "s1", title: "Design Your Forms", image: "/postpipe.gif" },
-  { id: "s2", title: "Setup Connectors", image: "/settings.gif" },
-  { id: "s3", title: "Test & Deploy", image: "/testing.gif" },
+  { id: "s1", title: "Design Your Forms", image: "https://res.cloudinary.com/dbaw86kzf/image/upload/v1788190389/postpipe_cwnwwj.gif" },
+  { id: "s2", title: "Setup Connectors", image: "https://res.cloudinary.com/dbaw86kzf/image/upload/v1788190391/settings_p0ccrr.gif" },
+  { id: "s3", title: "Test & Deploy", image: "https://res.cloudinary.com/dbaw86kzf/image/upload/v1788190391/testing_mistui.gif" },
 ];
 
 const dynamicSteps = [
-  { id: "d1", title: "CLI Setup", image: "/forge1.gif" }, 
-  { id: "d2", title: "Component Scaffold", image: "/forge2.gif" },
-  { id: "d3", title: "Database Deploy", image: "/forge3.gif" },
+  { id: "d1", title: "CLI Setup", image: "https://res.cloudinary.com/dbaw86kzf/image/upload/v1788190392/forge1_xpdrot.gif" }, 
+  { id: "d2", title: "Component Scaffold", image: "https://res.cloudinary.com/dbaw86kzf/image/upload/v1788190390/forge2_zbpbm3.gif" },
+  { id: "d3", title: "Database Deploy", image: "https://res.cloudinary.com/dbaw86kzf/image/upload/v1788190389/forge3_uqlmvc.gif" },
 ];
 
 export function PathSelection() {

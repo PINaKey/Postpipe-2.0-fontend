@@ -115,7 +115,27 @@ export default function DashboardShell({
                             ))}
                         </div>
                     </div>
-                    <div>
+                    <div className="flex flex-col gap-2">
+                        <SidebarLink 
+                            link={{
+                                label: "Usage",
+                                href: "/dashboard/usage",
+                                icon: (
+                                    <>
+                                        <style>{`
+                                            @keyframes wipe-right {
+                                                0% { clip-path: inset(0 100% 0 0); }
+                                                100% { clip-path: inset(0 0 0 0); }
+                                            }
+                                            .group\\/sidebar:hover .icon-wipe {
+                                                animation: wipe-right 0.5s ease-out forwards;
+                                            }
+                                        `}</style>
+                                        <Activity className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0 icon-wipe transition-all duration-200 ml-1.5" />
+                                    </>
+                                )
+                            }} 
+                        />
                         {bottomLinks.map((link, idx) => (
                             <SidebarLink key={idx} link={link} />
                         ))}

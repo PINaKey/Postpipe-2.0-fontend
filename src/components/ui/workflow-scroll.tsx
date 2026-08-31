@@ -15,7 +15,7 @@ const steps = [
     title: "Design Your Forms",
     description:
       "Visually build and configure your static forms. Add fields, validation, and custom layouts — no boilerplate code required.",
-    image: "/postpipe.gif",
+    image: "https://res.cloudinary.com/dbaw86kzf/image/upload/v1788190389/postpipe_cwnwwj.gif",
   },
   {
     id: "step-2",
@@ -23,7 +23,7 @@ const steps = [
     title: "Setup Connectors",
     description:
       "Securely route submissions to any backend. Connect to databases, webhooks, and third-party APIs in just a few clicks.",
-    image: "/settings.gif",
+    image: "https://res.cloudinary.com/dbaw86kzf/image/upload/v1788190391/settings_p0ccrr.gif",
   },
   {
     id: "step-3",
@@ -31,7 +31,7 @@ const steps = [
     title: "Test & Deploy",
     description:
       "Test your endpoints directly within PostPipe. Once verified, deploy instantly and generate embeddable snippets for anywhere.",
-    image: "/testing.gif",
+    image: "https://res.cloudinary.com/dbaw86kzf/image/upload/v1788190391/testing_mistui.gif",
   },
 ];
 
@@ -75,7 +75,7 @@ export function WorkflowScroll() {
         start: "top top",
         end: () => `+=${pinDistance}`,
         animation: pinAnim,
-        scrub: 0.5, // Matches the wrapper's scrub exactly to prevent desync
+        scrub: true, // true syncs perfectly with Lenis to prevent desync/jitter
         onUpdate: (self) => {
           const newIndex = Math.min(
             steps.length - 1,
@@ -87,7 +87,7 @@ export function WorkflowScroll() {
           gsap.to(".timeline-progress-bar", {
             height: `${self.progress * 100}%`,
             ease: "none",
-            duration: 0.1
+            duration: 0
           });
         },
       });

@@ -12,27 +12,27 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Activity, AlertCircle, ArrowUp, ArrowDown, Database } from "lucide-react";
 
 interface UsageStats {
+    plan?: string;
+    monthlySubmissions?: number;
+    limitSubmissions?: number;
+    limitConnectors?: number;
     totalRequests: number;
     errorRate: number;
     avgLatency: number;
-    storageBytes: number;
     activeConnectors: number;
+    activeForms: number;
 }
 
 interface UsageClientProps {
     stats: UsageStats;
 }
 
-function formatBytes(bytes: number, decimals = 2) {
-    if (!+bytes) return '0 Bytes';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-}
 
 export default function UsageClient({ stats }: UsageClientProps) {
+    const planName = stats.plan ? stats.plan.charAt(0).toUpperCase() + stats.plan.slice(1) : 'Starter';
+    const submissionsPercent = stats.limitSubmissions === Infinity ? 0 : Math.min(100, ((stats.monthlySubmissions || 0) / (stats.limitSubmissions || 1000)) * 100);
+    const connectorsPercent = stats.limitConnectors === Infinity ? 0 : Math.min(100, (stats.activeConnectors / (stats.limitConnectors || 2)) * 100);
+
     return (
         <div className="flex flex-col gap-8">
             <div>
@@ -52,7 +52,7 @@ export default function UsageClient({ stats }: UsageClientProps) {
                         <div className="text-2xl font-bold">{stats.totalRequests.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                             <ArrowUp className="h-4 w-4 text-green-500" />
-                            Live count
+                            All-time count
                         </p>
                     </CardContent>
                 </Card>
@@ -86,32 +86,32 @@ export default function UsageClient({ stats }: UsageClientProps) {
             <Card>
                 <CardHeader>
                     <CardTitle>Usage Limits</CardTitle>
-                    <CardDescription>You are currently on the <strong>Unlimited</strong> Developer plan.</CardDescription>
+                    <CardDescription>You are currently on the <strong className="text-primary">{planName}</strong> plan.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
                     <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                             <span className="font-medium">Monthly Requests</span>
-                            <span className="text-muted-foreground font-mono">Unlimited</span>
+                            <span className="text-muted-foreground font-mono">{stats.limitSubmissions === Infinity ? 'Unlimited' : stats.limitSubmissions?.toLocaleString()}</span>
                         </div>
-                        <Progress value={0} className="h-2" />
-                        <p className="text-xs text-muted-foreground text-right">{stats.totalRequests.toLocaleString()} used</p>
-                    </div>
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium">Storage Used</span>
-                            <span className="text-muted-foreground font-mono">Unlimited</span>
-                        </div>
-                        <Progress value={0} className="h-2" />
-                        <p className="text-xs text-muted-foreground text-right">{formatBytes(stats.storageBytes)} used</p>
+                        <Progress value={submissionsPercent} className="h-2" />
+                        <p className="text-xs text-muted-foreground text-right">{(stats.monthlySubmissions || 0).toLocaleString()} used this month</p>
                     </div>
                     <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                             <span className="font-medium">Active Connectors</span>
+                            <span className="text-muted-foreground font-mono">{stats.limitConnectors === Infinity ? 'Unlimited' : stats.limitConnectors}</span>
+                        </div>
+                        <Progress value={connectorsPercent} className="h-2" />
+                        <p className="text-xs text-muted-foreground text-right">{stats.activeConnectors} active connectors</p>
+                    </div>
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="font-medium">Active Forms</span>
                             <span className="text-muted-foreground font-mono">Unlimited</span>
                         </div>
                         <Progress value={0} className="h-2" />
-                        <p className="text-xs text-muted-foreground text-right">{stats.activeConnectors} active</p>
+                        <p className="text-xs text-muted-foreground text-right">{stats.activeForms} active forms</p>
                     </div>
                 </CardContent>
             </Card>
