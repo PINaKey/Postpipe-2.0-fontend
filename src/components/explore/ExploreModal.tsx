@@ -51,10 +51,35 @@ interface ExploreModalProps {
 export function ExploreModal({ open, onOpenChange, item }: ExploreModalProps) {
     const { toast } = useToast()
     const [selectedDb, setSelectedDb] = useState("")
+    const itemId = item?.id
 
     useEffect(() => {
-        setSelectedDb("")
-    }, [open, item])
+        if (!open) {
+            setSelectedDb("")
+        }
+    }, [open, itemId])
+
+    // Lock background scroll when modal is open
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = "hidden"
+            if (typeof window !== "undefined") {
+                (window as any).__lenis?.stop()
+            }
+        } else {
+            document.body.style.overflow = ""
+            if (typeof window !== "undefined") {
+                (window as any).__lenis?.start()
+            }
+        }
+
+        return () => {
+            document.body.style.overflow = ""
+            if (typeof window !== "undefined") {
+                (window as any).__lenis?.start()
+            }
+        }
+    }, [open])
 
     if (!item) return null
 
@@ -156,31 +181,41 @@ export function ExploreModal({ open, onOpenChange, item }: ExploreModalProps) {
 
                                             <div className="hidden md:block h-6 w-px bg-border mx-2" />
 
-                                            <div className="w-full md:w-[180px]">
+                                            <div className="w-full md:w-[190px]">
                                                 <Select
                                                     value={selectedDb}
                                                     onValueChange={(val) => {
                                                         setSelectedDb(val);
-                                                        const config = item.databaseConfigurations?.find(c => c.databaseName === val);
-                                                        if (config) {
-                                                            handleCopy(config.prompt, "Prompt");
+                                                        const config = item.databaseConfigurations?.find(c => c.databaseName?.toLowerCase() === val?.toLowerCase());
+                                                        if (config?.prompt) {
+                                                            handleCopy(config.prompt, `${val} prompt`);
                                                         } else {
-                                                            // Fallback if no specific config found, though UI is driven by databases list so this might be generic
-                                                            handleCopy(`${item.aiPrompt || ''} using ${val}`, "Prompt");
+                                                            handleCopy(`${item.aiPrompt || ''} using ${val}`, `${val} prompt`);
                                                         }
                                                     }}
                                                 >
-                                                    <SelectTrigger className="h-9 w-full rounded-full bg-primary text-primary-foreground hover:bg-primary/90 border-none">
+                                                    <SelectTrigger className="h-9 w-full rounded-full bg-primary text-primary-foreground hover:bg-primary/90 border-none px-3.5 flex items-center justify-between">
                                                         <div className="flex items-center gap-2 truncate">
-                                                            <SelectValue placeholder="Select Database" />
+                                                            {(() => {
+                                                                const dbObj = databases.find(d => d.name === selectedDb);
+                                                                if (dbObj) {
+                                                                    return (
+                                                                        <div className="flex items-center gap-2 truncate">
+                                                                            <img src={dbObj.logo} alt={dbObj.name} className="h-4 w-4 shrink-0 object-contain" />
+                                                                            <span className="text-xs font-semibold truncate">{dbObj.name}</span>
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                                return <span className="text-xs font-medium">Select Database</span>;
+                                                            })()}
                                                         </div>
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {databases.map((db) => (
-                                                            <SelectItem key={db.name} value={db.name}>
+                                                            <SelectItem key={db.name} value={db.name} className="cursor-pointer">
                                                                 <div className="flex items-center gap-2">
-                                                                    <img src={db.logo} alt={db.name} className="h-4 w-4" />
-                                                                    <span>{db.name}</span>
+                                                                    <img src={db.logo} alt={db.name} className="h-4 w-4 shrink-0 object-contain" />
+                                                                    <span className="font-medium text-xs">{db.name}</span>
                                                                 </div>
                                                             </SelectItem>
                                                         ))}

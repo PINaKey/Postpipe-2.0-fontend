@@ -14,6 +14,8 @@ export function useSmoothScroll() {
       smoothWheel: true,
     });
 
+    (window as any).__lenis = lenis;
+
     lenis.on('scroll', ScrollTrigger.update);
 
     function update(time: number) {
@@ -24,6 +26,7 @@ export function useSmoothScroll() {
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      delete (window as any).__lenis;
       gsap.ticker.remove(update);
       lenis.off('scroll', ScrollTrigger.update);
       lenis.destroy();
