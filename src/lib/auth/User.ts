@@ -62,6 +62,13 @@ const UserSchema = new mongoose.Schema({
         type: String,
         sparse: true,
     },
+    cancelAtPeriodEnd: {
+        type: Boolean,
+        default: false,
+    },
+    currentPeriodEnd: {
+        type: Date,
+    },
     monthlySubmissions: {
         type: Number,
         default: 0,

@@ -13,6 +13,9 @@ type User = {
   plan?: string;
   monthlySubmissions?: number;
   usageResetDate?: string;
+  hasActiveSubscription?: boolean;
+  cancelAtPeriodEnd?: boolean;
+  currentPeriodEnd?: string | Date;
 };
 
 export type AuthContextType = {

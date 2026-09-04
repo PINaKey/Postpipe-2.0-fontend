@@ -53,7 +53,7 @@ export function PathSelection() {
       </div>
 
       {/* DESKTOP SPLIT SCREEN (> lg) */}
-      <div className="hidden lg:block relative w-full h-[650px] max-w-[1400px] mx-auto bg-border overflow-hidden rounded-3xl border border-border/50 shadow-2xl group/container">
+      <div className="hidden lg:block relative w-[calc(100%-4rem)] xl:w-[calc(100%-6rem)] h-[650px] max-w-[1400px] mx-auto bg-border overflow-hidden rounded-3xl border border-border/50 shadow-2xl group/container">
         
         {/* ─── STATIC PATH (LEFT) ─── */}
         <motion.div
@@ -123,7 +123,7 @@ export function PathSelection() {
                             {staticSteps.map((step, idx) => (
                                 <motion.div 
                                     key={step.id} 
-                                    className="flex items-center gap-6 p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition-colors"
+                                    className="group flex items-center gap-6 p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition-colors"
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.15 + (idx * 0.1) }}
@@ -213,7 +213,7 @@ export function PathSelection() {
                             {dynamicSteps.map((step, idx) => (
                                 <motion.div 
                                     key={step.id} 
-                                    className="flex flex-row-reverse items-center gap-6 p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition-colors text-right"
+                                    className="group flex flex-row-reverse items-center gap-6 p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition-colors text-right"
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.15 + (idx * 0.1) }}

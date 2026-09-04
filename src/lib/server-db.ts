@@ -655,8 +655,9 @@ export async function getUserUsageStats(userId: string) {
     console.error("Failed to fetch User plan limits", e);
   }
 
-  const limitSubmissions = plan === 'builder' ? 50000 : plan === 'enterprise' ? Infinity : 1000;
-  const limitConnectors = plan === 'builder' ? 10 : plan === 'enterprise' ? Infinity : 2;
+  const { PLAN_LIMITS } = await import('@/config/plans');
+  const limitSubmissions = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS]?.submissions || 1000;
+  const limitConnectors = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS]?.connectors || 2;
 
   // 1. Get Forms & Submissions
   const formsDoc = await db.collection<UserFormsDocument>('user_forms').findOne({ userId });

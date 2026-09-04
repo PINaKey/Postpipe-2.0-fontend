@@ -170,7 +170,7 @@ export default function Home() {
         <Marquee text="Scale Infinite • Zero Infrastructure • PostPipe • " repeat={4} duration={40} fontSize="xl" />
       </div>
 
-      <PricingSection />
+      <PricingSection hideIfPurchased={true} />
       <section id="faq" className="bg-background py-20 md:py-32">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="mb-12 text-center">

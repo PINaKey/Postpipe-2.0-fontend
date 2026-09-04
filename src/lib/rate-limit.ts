@@ -4,20 +4,7 @@ import { sendQuotaWarningEmail } from './auth/email';
 import dbConnect from './auth/mongodb';
 import { ObjectId } from 'mongodb';
 
-export const PLAN_LIMITS = {
-  starter: {
-    connectors: 2,
-    submissions: 1000,
-  },
-  builder: {
-    connectors: 10,
-    submissions: 50000,
-  },
-  enterprise: {
-    connectors: Infinity,
-    submissions: Infinity,
-  }
-};
+import { PLAN_LIMITS } from '@/config/plans';
 
 /**
  * Checks if the user has reached their connector limit based on their plan.

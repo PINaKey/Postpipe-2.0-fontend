@@ -8,21 +8,29 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Check, Star, Shield, Zap, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import confetti from "canvas-confetti";
 import NumberFlow from "@number-flow/react";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createCheckoutSession, verifySubscription } from "@/lib/auth/actions";
 
 interface PricingPlan {
   name: string;
-  price: string;
-  yearlyPrice: string;
-  period: string;
-  yearlyPeriod: string;
+  prices: {
+    monthly: string;
+    quarterly: string;
+    yearly: string;
+  };
+  periods: {
+    monthly: string;
+    quarterly: string;
+    yearly: string;
+  };
   features: string[];
   description: string;
   buttonText: string;
   href: string;
-  yearlyHref?: string;
   isPopular: boolean;
   icon: React.ReactNode;
 }
@@ -30,10 +38,16 @@ interface PricingPlan {
 const postpipePlans: PricingPlan[] = [
   {
     name: "Starter",
-    price: "0",
-    yearlyPrice: "0",
-    period: "forever",
-    yearlyPeriod: "forever",
+    prices: {
+      monthly: "0",
+      quarterly: "0",
+      yearly: "0",
+    },
+    periods: {
+      monthly: "forever",
+      quarterly: "forever",
+      yearly: "forever",
+    },
     features: [
       "2 Database Connectors",
       "1,000 Submissions / month",
@@ -48,30 +62,40 @@ const postpipePlans: PricingPlan[] = [
   },
   {
     name: "Builder",
-    price: "699",
-    yearlyPrice: "1899",
-    period: "3 months",
-    yearlyPeriod: "year",
+    prices: {
+      monthly: "399",
+      quarterly: "699",
+      yearly: "1899",
+    },
+    periods: {
+      monthly: "month",
+      quarterly: "3 months",
+      yearly: "year",
+    },
     features: [
       "10 Database Connectors",
       "50,000 Submissions / month",
       "Custom Webhooks & Triggers",
-      "Cloudinary File Uploads",
       "Priority Email Support",
     ],
     description: "For freelancers and production applications.",
     buttonText: "Upgrade to Builder",
-    href: "https://rzp.io/rzp/M5r0TdJo",
-    yearlyHref: "https://rzp.io/rzp/Cu9LVU4",
+    href: "checkout",
     isPopular: true,
     icon: <Star className="h-6 w-6 text-zinc-100" />
   },
   {
     name: "Enterprise",
-    price: "Custom",
-    yearlyPrice: "Custom",
-    period: "",
-    yearlyPeriod: "",
+    prices: {
+      monthly: "Custom",
+      quarterly: "Custom",
+      yearly: "Custom",
+    },
+    periods: {
+      monthly: "",
+      quarterly: "",
+      yearly: "",
+    },
     features: [
       "Unlimited Connectors",
       "Unlimited Submissions",
@@ -87,39 +111,76 @@ const postpipePlans: PricingPlan[] = [
   },
 ];
 
-export function PricingSection() {
-  const [isMonthly, setIsMonthly] = useState(true);
+interface PricingSectionProps {
+  hideIfPurchased?: boolean;
+}
+
+export function PricingSection({ hideIfPurchased }: PricingSectionProps = {}) {
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "quarterly" | "yearly">("monthly");
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const switchRef = useRef<HTMLButtonElement>(null);
+  const { user, refreshSession } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isCheckingOut, setIsCheckingOut] = useState<string | null>(null);
+  const hasFiredSuccess = useRef(false);
 
-  const handleToggle = (checked: boolean) => {
-    setIsMonthly(!checked);
-    if (checked && switchRef.current) {
-      const rect = switchRef.current.getBoundingClientRect();
-      const x = rect.left + rect.width / 2;
-      const y = rect.top + rect.height / 2;
+  useEffect(() => {
+    const handleSuccess = async () => {
+        if (searchParams.get("success") === "true" && !hasFiredSuccess.current) {
+            hasFiredSuccess.current = true;
+            
+            // If returning from Dodo Payments with a subscription_id, verify it immediately
+            const subId = searchParams.get("subscription_id");
+            if (subId) {
+                await verifySubscription(subId);
+            }
 
-      confetti({
-        particleCount: 50,
-        spread: 60,
-        origin: {
-          x: x / window.innerWidth,
-          y: y / window.innerHeight,
-        },
-        colors: [
-          "hsl(var(--primary))",
-          "hsl(var(--accent))",
-          "hsl(var(--secondary))",
-          "hsl(var(--muted))",
-        ],
-        ticks: 200,
-        gravity: 1.2,
-        decay: 0.94,
-        startVelocity: 30,
-        shapes: ["circle"],
-      });
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+            
+            if (refreshSession) {
+                refreshSession();
+            }
+            
+            // Clean up the URL
+            router.replace("/pricing");
+        }
+    };
+    
+    handleSuccess();
+  }, [searchParams, refreshSession, router]);
+
+  const handleCheckout = async (planName: string) => {
+    if (!user) {
+        router.push("/login?redirect=/pricing");
+        return;
+    }
+    setIsCheckingOut(planName);
+    try {
+        const res = await createCheckoutSession(planName.toLowerCase(), billingCycle);
+        if (res.success && res.url) {
+            window.location.href = res.url;
+        } else {
+            alert(res.message || "Failed to initiate checkout");
+            setIsCheckingOut(null);
+        }
+    } catch (error) {
+        console.error(error);
+        alert("An error occurred during checkout.");
+        setIsCheckingOut(null);
     }
   };
+
+  const handleToggle = (cycle: "monthly" | "quarterly" | "yearly") => {
+    setBillingCycle(cycle);
+  };
+
+  if (hideIfPurchased && user && user.plan !== 'starter') {
+    return null;
+  }
 
   return (
     <section id="pricing" className="py-20 md:py-32 bg-background relative overflow-hidden">
@@ -134,21 +195,51 @@ export function PricingSection() {
           </p>
         </div>
 
-        <div className="flex justify-center items-center gap-4 mb-16">
-          <span className={cn("text-sm font-medium", isMonthly ? "text-foreground" : "text-muted-foreground")}>Quarterly</span>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <Label>
-              <Switch
-                ref={switchRef as any}
-                checked={!isMonthly}
-                onCheckedChange={handleToggle}
-                className="relative bg-zinc-800 data-[state=checked]:bg-primary border-border border"
-              />
-            </Label>
-          </label>
-          <span className={cn("text-sm font-medium flex items-center gap-1.5", !isMonthly ? "text-foreground" : "text-muted-foreground")}>
-            Yearly <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-sm font-bold uppercase tracking-wider">Save Big</span>
-          </span>
+        <div className="flex justify-center items-center gap-2 mb-16 p-1 bg-zinc-900/50 backdrop-blur-md rounded-full border border-white/5 w-fit mx-auto">
+          {(["monthly", "quarterly", "yearly"] as const).map((cycle) => (
+            <button
+              key={cycle}
+              onClick={() => {
+                handleToggle(cycle);
+                if (cycle === "yearly") {
+                  confetti({
+                    particleCount: 50,
+                    spread: 60,
+                    origin: { y: 0.6 },
+                    colors: [
+                      "hsl(var(--primary))",
+                      "hsl(var(--accent))",
+                      "hsl(var(--secondary))",
+                      "hsl(var(--muted))",
+                    ],
+                  });
+                }
+              }}
+              className={cn(
+                "relative px-6 py-2.5 text-sm font-medium rounded-full transition-all duration-300 capitalize flex items-center",
+                billingCycle === cycle
+                  ? "text-white"
+                  : "text-muted-foreground hover:text-white"
+              )}
+            >
+              {billingCycle === cycle && (
+                <motion.div
+                  layoutId="billing-pill"
+                  className="absolute inset-0 bg-primary border border-primary rounded-full"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-1.5">
+                {cycle}
+                {cycle === "yearly" && (
+                  <span className={cn(
+                    "text-[10px] px-1.5 py-0.5 rounded-sm font-bold uppercase tracking-wider ml-1",
+                    billingCycle === cycle ? "bg-white/20 text-white" : "bg-primary/20 text-primary"
+                  )}>Save Big</span>
+                )}
+              </span>
+            </button>
+          ))}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 sm:2 gap-4 max-w-6xl mx-auto">
@@ -206,53 +297,44 @@ export function PricingSection() {
                 </p>
                 
                 <div className="mt-2 flex items-baseline justify-center gap-x-2">
-                  {plan.price === "Custom" ? (
+                  {plan.prices[billingCycle] === "Custom" ? (
                     <span className="text-4xl lg:text-5xl font-black tracking-tight text-foreground">
                         Custom
                     </span>
                   ) : (
                     <div className="flex items-end gap-2 flex-wrap justify-center">
-                        {plan.isPopular && (
+                        {plan.prices[billingCycle] !== "0" && (
                              <span className="text-lg text-muted-foreground line-through decoration-muted-foreground/50 leading-none mb-1">
-                                 ₹{isMonthly ? "1299" : "2400"}
+                                 ₹{Math.round(Number(plan.prices[billingCycle]) * 1.48)}
                              </span>
                         )}
                         <span className="text-4xl lg:text-5xl font-black tracking-tight text-foreground flex items-center leading-none">
                             <span className="text-2xl mr-1">₹</span>
                             <NumberFlow
-                                value={
-                                isMonthly ? Number(plan.price) : Number(plan.yearlyPrice)
-                                }
+                                value={Number(plan.prices[billingCycle])}
                                 format={{
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0,
+                                  minimumFractionDigits: 0,
+                                  maximumFractionDigits: 0,
                                 }}
                                 transformTiming={{
-                                duration: 500,
-                                easing: "ease-out",
+                                  duration: 500,
+                                  easing: "ease-out",
                                 }}
                                 willChange
                                 className="font-variant-numeric: tabular-nums leading-none"
                             />
                         </span>
-                        {((isMonthly ? plan.period : plan.yearlyPeriod) !== "forever") && (
+                        {(plan.periods[billingCycle] !== "forever") && (
                             <span className="text-sm font-semibold leading-none mb-1 ml-1 text-muted-foreground">
-                            / {isMonthly ? plan.period : plan.yearlyPeriod}
+                            / {plan.periods[billingCycle]}
                             </span>
                         )}
                     </div>
                   )}
                 </div>
 
-                {plan.price !== "Custom" && plan.price !== "0" && (
-                    <div className="mt-6 flex justify-center">
-                        <span className="inline-flex items-center rounded-md bg-green-500/10 px-3 py-1.5 text-[11px] sm:text-xs font-semibold text-green-500 border border-green-500/20 leading-snug">
-                            {isMonthly ? "🎉 Flat 30% Off on UPI Mandates by any UPI App" : "🎉 20% Discount on UPI Mandates on all UPI Apps"}
-                        </span>
-                    </div>
-                )}
-                
-                {plan.price === "0" && (
+
+                {plan.prices[billingCycle] === "0" && (
                      <div className="mt-6 flex justify-center h-8">
                      </div>
                 )}
@@ -266,23 +348,37 @@ export function PricingSection() {
                   ))}
                 </ul>
 
-                <Link
-                  href={(!isMonthly && plan.yearlyHref) ? plan.yearlyHref : plan.href}
-                  className="w-full"
-                  target={plan.isPopular ? "_blank" : "_self"}
-                  rel={plan.isPopular ? "noopener noreferrer" : ""}
-                >
-                  <Button 
-                    variant={plan.isPopular ? "secondary" : "outline"} 
-                    className={cn(
-                        "w-full h-12 font-bold gap-2 text-base group/btn",
-                        plan.isPopular ? "bg-zinc-100 text-zinc-900 hover:bg-zinc-200" : "border-zinc-700 hover:bg-zinc-800"
-                    )}
-                  >
-                    {plan.buttonText} 
-                    {plan.isPopular && <ArrowRight className="h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />}
-                  </Button>
-                </Link>
+                {plan.href === "checkout" ? (
+                    <Button 
+                        variant={plan.isPopular ? "secondary" : "outline"} 
+                        className={cn(
+                            "w-full h-12 font-bold gap-2 text-base group/btn mt-auto",
+                            plan.isPopular ? "bg-zinc-100 text-zinc-900 hover:bg-zinc-200" : "border-zinc-700 hover:bg-zinc-800"
+                        )}
+                        onClick={() => handleCheckout(plan.name)}
+                        disabled={isCheckingOut === plan.name}
+                    >
+                        {isCheckingOut === plan.name ? "Processing..." : plan.buttonText} 
+                        {plan.isPopular && isCheckingOut !== plan.name && <ArrowRight className="h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />}
+                    </Button>
+                ) : (
+                    <Link
+                    href={!user ? "/login?redirect=/pricing" : plan.href}
+                    className="w-full mt-auto"
+                    target="_self"
+                    >
+                    <Button 
+                        variant={plan.isPopular ? "secondary" : "outline"} 
+                        className={cn(
+                            "w-full h-12 font-bold gap-2 text-base group/btn",
+                            plan.isPopular ? "bg-zinc-100 text-zinc-900 hover:bg-zinc-200" : "border-zinc-700 hover:bg-zinc-800"
+                        )}
+                    >
+                        {plan.buttonText} 
+                        {plan.isPopular && <ArrowRight className="h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />}
+                    </Button>
+                    </Link>
+                )}
               </div>
             </motion.div>
           ))}

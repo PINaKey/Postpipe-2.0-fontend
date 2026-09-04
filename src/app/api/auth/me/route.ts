@@ -42,6 +42,15 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
+        // Explicitly backfill 'plan' field if missing so it shows up in database queries
+        if (!user.plan) {
+            await User.collection.updateOne(
+                { _id: new ObjectId(userId) },
+                { $set: { plan: 'starter' } }
+            );
+            user.plan = 'starter';
+        }
+
         // Determine provider (simplified logic based on standard schema)
         let provider = 'email';
         if (user.googleId) provider = 'google';
@@ -55,7 +64,10 @@ export async function GET(req: NextRequest) {
             image: user.image,
             plan: user.plan || 'starter',
             monthlySubmissions: user.monthlySubmissions || 0,
-            usageResetDate: user.usageResetDate
+            usageResetDate: user.usageResetDate,
+            hasActiveSubscription: !!user.razorpaySubscriptionId,
+            cancelAtPeriodEnd: !!user.cancelAtPeriodEnd,
+            currentPeriodEnd: user.currentPeriodEnd
         }, { status: 200 });
 
     } catch (error) {

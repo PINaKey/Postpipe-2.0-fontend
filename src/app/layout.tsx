@@ -11,10 +11,10 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.postpipe.in'),
   title: {
     template: 'PostPipe | %s',
-    default: 'PostPipe - The Largest Next.js Backend Component Library',
+    default: 'PostPipe - Default Backend for Modern Web',
   },
   description:
-    'PostPipe is the premier Next.js backend component library and static ingest system. Build, deploy, and scale your applications faster with ready-to-use backend logic, connectors, and agentic AI tools. The ultimate developer toolkit for modern web applications.',
+    'PostPipe is the default backend for the modern web and static ingest system. Build, deploy, and scale your applications faster with ready-to-use backend logic, connectors, and agentic AI tools. The ultimate developer toolkit for modern web applications.',
   keywords: [
     'Next.js',
     'React',
@@ -41,9 +41,9 @@ export const metadata: Metadata = {
   category: 'technology',
   classification: 'Developer Tools',
   openGraph: {
-    title: 'PostPipe - The Largest Next.js Backend Component Library',
+    title: 'PostPipe - Default Backend for Modern Web',
     description:
-      'Build faster with PostPipe. The largest backend component library for Next.js, featuring a visual form builder, workflow automation, and AI-powered development tools.',
+      'Build faster with PostPipe. The default backend for the modern web, featuring a visual form builder, workflow automation, and AI-powered development tools.',
     url: 'https://www.postpipe.in',
     siteName: 'PostPipe',
     images: [
@@ -104,7 +104,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -116,7 +116,7 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          enableSystem
+          forcedTheme="dark"
           disableTransitionOnChange
         >
           <AuthProvider>

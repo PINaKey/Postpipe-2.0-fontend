@@ -15,6 +15,7 @@ import {
     Plus, Shield, Server, Activity, Edit2
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 import { registerConnectorAction } from "@/app/actions/register";
 import { deleteConnectorAction, updateConnectorUrlAction, verifyConnectorAction } from "@/app/actions/dashboard";
@@ -120,7 +121,17 @@ export default function ConnectorsClient({ initialConnectors, databaseConfig }: 
         try {
             const res = await registerConnectorAction(FormDataObj);
             if (res.error) {
-                toast({ title: "Registration Failed", description: res.error, variant: "destructive" });
+                const isLimitError = res.error.toLowerCase().includes('limit');
+                toast({ 
+                    title: "Registration Failed", 
+                    description: res.error, 
+                    variant: "destructive",
+                    action: isLimitError ? (
+                        <ToastAction altText="Upgrade Plan" asChild>
+                            <a href="/pricing">Upgrade Plan</a>
+                        </ToastAction>
+                    ) : undefined
+                });
             } else {
                 setConnectors(prev => [...prev, {
                     id: res.connectorId || "",

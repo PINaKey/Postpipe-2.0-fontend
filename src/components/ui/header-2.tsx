@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { AuthButton } from '../layout/auth-button';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 
 import {
@@ -32,11 +31,12 @@ export function Header2() {
 	const [isOpen, setIsOpen] = React.useState(false);
 
 	const links = [
-		{ href: "/explore", label: "Forge" },
 		{ href: "/static", label: "Static" },
 		{ href: "https://kontext.postpipe.in", label: "Kontext" },
+		{ href: "/explore", label: "Forge" },
 		{ href: "/dashboard/changelog", label: "Change Log" },
 		{ href: "/docs", label: "Docs" },
+		{ href: "/pricing", label: "Pricing" },
 	];
 
 	return (
@@ -86,7 +86,6 @@ export function Header2() {
 								</Tooltip>
 							</TooltipProvider>
 						)}
-						<ThemeToggle />
 					</div>
 				</div>
 
@@ -102,7 +101,6 @@ export function Header2() {
 							<HelpCircle className="h-5 w-5 transition-all duration-300 group-hover:text-primary group-hover:drop-shadow-[0_0_8px_hsl(var(--primary))]" />
 						</Button>
 					)}
-					<ThemeToggle />
 					<Sheet open={isOpen} onOpenChange={setIsOpen}>
 						<SheetTrigger asChild>
 							<Button variant="ghost" size="icon" className="shrink-0">
