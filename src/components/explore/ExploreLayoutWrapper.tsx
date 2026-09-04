@@ -14,19 +14,20 @@ export function ExploreLayoutWrapper({ children }: ExploreLayoutWrapperProps) {
 
     return (
         <div className={cn(
-            "rounded-md flex flex-col md:flex-row bg-gray-50 dark:bg-neutral-950 w-full flex-1 border border-neutral-200 dark:border-neutral-700 overflow-hidden",
-            "h-[100dvh]"
+            "flex flex-col md:flex-row bg-background w-full min-h-screen border-r border-neutral-200 dark:border-neutral-800"
         )}>
-            <React.Suspense fallback={<div className="w-16 h-full bg-background hidden md:block" />}>
-                <ExploreSidebar open={open} setOpen={setOpen} />
-            </React.Suspense>
-            <div className="flex flex-1 flex-col overflow-y-auto">
+            <div className="md:sticky md:top-0 md:h-screen md:self-start z-30 shrink-0">
+                <React.Suspense fallback={<div className="w-16 h-full bg-background hidden md:block" />}>
+                    <ExploreSidebar open={open} setOpen={setOpen} />
+                </React.Suspense>
+            </div>
+            <div className="flex flex-1 flex-col min-w-0">
                 <ExploreHeader />
-                <div className="flex-1">
+                <main className="flex-1 w-full">
                     <React.Suspense fallback={null}>
                         {children}
                     </React.Suspense>
-                </div>
+                </main>
             </div>
         </div>
     )
