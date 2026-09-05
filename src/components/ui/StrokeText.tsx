@@ -10,6 +10,8 @@ if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 const DEFAULT_TEXT = 'Draw Attention';
 
 const StrokeText = ({
@@ -54,7 +56,7 @@ const StrokeText = ({
     [fontSize, fontWeight, letterSpacing, fontFamily]
   );
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const node = strokeTextRef.current;
     if (!node) return undefined;
 

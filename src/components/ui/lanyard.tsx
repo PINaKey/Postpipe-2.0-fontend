@@ -52,7 +52,7 @@ export default function Lanyard({
         frameloop={isInView ? 'always' : 'never'}
         camera={{ position: position, fov: fov }}
         dpr={[1, 1.2]}
-        gl={{ alpha: transparent, antialias: false, powerPreference: "high-performance" }}
+        gl={{ alpha: transparent, antialias: false, powerPreference: "default" }}
         performance={{ min: 0.5 }}
         onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1)}
       >

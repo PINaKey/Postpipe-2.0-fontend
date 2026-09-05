@@ -37,7 +37,8 @@ export function CountryProvider({ children }: { children: React.ReactNode }) {
   const getRawPrice = (inrPrice: number | string) => {
     const p = Number(inrPrice);
     if (isNaN(p) || p === 0) return 0;
-    if (country === "IN") return p;
+    const activeCountry = mounted ? country : "US";
+    if (activeCountry === "IN") return p;
     // Conversion mapping based on existing Postpipe pricing tiers
     if (p === 399) return 5;
     if (p === 699) return 9;
@@ -47,8 +48,9 @@ export function CountryProvider({ children }: { children: React.ReactNode }) {
 
   const formatPrice = (inrPrice: number | string) => {
     const raw = getRawPrice(inrPrice);
-    if (raw === 0) return country === "IN" ? "₹0" : "$0";
-    return country === "IN" ? `₹${raw}` : `$${raw}`;
+    const activeCountry = mounted ? country : "US";
+    if (raw === 0) return activeCountry === "IN" ? "₹0" : "$0";
+    return activeCountry === "IN" ? `₹${raw}` : `$${raw}`;
   };
 
   // Provide defaults before hydration to avoid mismatch, though ideally we suppress hydration warning

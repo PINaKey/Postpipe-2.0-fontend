@@ -192,11 +192,17 @@ export function PricingSection({ hideIfPurchased }: PricingSectionProps = {}) {
     }
   };
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const handleToggle = (cycle: "monthly" | "quarterly" | "yearly") => {
     setBillingCycle(cycle);
   };
 
-  if (hideIfPurchased && user && user.plan !== 'starter') {
+  if (mounted && hideIfPurchased && user && user.plan !== 'starter') {
     return null;
   }
 
@@ -310,12 +316,12 @@ export function PricingSection({ hideIfPurchased }: PricingSectionProps = {}) {
                   ) : (
                     <div className="flex items-end gap-2 flex-wrap justify-center">
                         {plan.prices[billingCycle] !== "0" && (
-                             <span className="text-lg text-muted-foreground line-through decoration-muted-foreground/50 leading-none mb-1">
+                             <span className="text-lg text-muted-foreground line-through decoration-muted-foreground/50 leading-none mb-1" suppressHydrationWarning>
                                  {currencySymbol}{Math.round(getRawPrice(plan.prices[billingCycle]) * 1.48)}
                              </span>
                         )}
-                        <span className="text-4xl lg:text-5xl font-black tracking-tight text-foreground flex items-center leading-none">
-                            <span className="text-2xl mr-1">{currencySymbol}</span>
+                        <span className="text-4xl lg:text-5xl font-black tracking-tight text-foreground flex items-center leading-none" suppressHydrationWarning>
+                            <span className="text-2xl mr-1" suppressHydrationWarning>{currencySymbol}</span>
                             <NumberFlow
                                 value={getRawPrice(plan.prices[billingCycle])}
                                 format={{
@@ -367,22 +373,22 @@ export function PricingSection({ hideIfPurchased }: PricingSectionProps = {}) {
                         {plan.isPopular && isCheckingOut !== plan.name && <ArrowRight className="h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />}
                     </Button>
                 ) : (
-                    <Link
-                    href={!user ? "/login?redirect=/pricing" : plan.href}
-                    className="w-full mt-auto"
-                    target="_self"
-                    >
                     <Button 
+                        asChild
                         variant={plan.isPopular ? "secondary" : "outline"} 
                         className={cn(
-                            "w-full h-12 font-bold gap-2 text-base group/btn",
+                            "w-full h-12 font-bold gap-2 text-base group/btn mt-auto",
                             plan.isPopular ? "bg-zinc-100 text-zinc-900 hover:bg-zinc-200" : "border-zinc-700 hover:bg-zinc-800"
                         )}
                     >
-                        {plan.buttonText} 
-                        {plan.isPopular && <ArrowRight className="h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />}
+                        <Link
+                            href={!user ? "/login?redirect=/pricing" : plan.href}
+                            target="_self"
+                        >
+                            {plan.buttonText} 
+                            {plan.isPopular && <ArrowRight className="h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />}
+                        </Link>
                     </Button>
-                    </Link>
                 )}
               </div>
             </motion.div>
