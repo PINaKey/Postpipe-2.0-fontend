@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/components/auth-provider';
 import { ThemeProvider } from '@/components/theme-provider';
+import { CountryProvider } from '@/components/country-provider';
 import { SmoothScroller } from '@/components/layout/smooth-scroller';
 import { Header2 } from '@/components/ui/header-2';
 import { AnimatedFooter } from '@/components/layout/animated-footer';
@@ -119,14 +120,16 @@ export default function RootLayout({
           forcedTheme="dark"
           disableTransitionOnChange
         >
-          <AuthProvider>
-            <Header2 />
-            <SmoothScroller>
-              <main className="flex-1 overflow-x-hidden">{children}</main>
-              <AnimatedFooter />
-            </SmoothScroller>
-            <Toaster />
-          </AuthProvider>
+          <CountryProvider>
+            <AuthProvider>
+              <Header2 />
+              <SmoothScroller>
+                <main className="flex-1 overflow-x-hidden">{children}</main>
+                <AnimatedFooter />
+              </SmoothScroller>
+              <Toaster />
+            </AuthProvider>
+          </CountryProvider>
         </ThemeProvider>
       </body>
     </html>

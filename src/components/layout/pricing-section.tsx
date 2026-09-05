@@ -2,16 +2,27 @@
 
 import { buttonVariants, Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Check, Star, Shield, Zap, ArrowRight } from "lucide-react";
+import { 
+  Check, 
+  Star, 
+  Shield, 
+  Zap, 
+  ArrowRight,
+  AlertTriangle,
+  Calendar,
+  CreditCard,
+  RefreshCcw,
+  ShieldCheck,
+  FileText,
+} from "lucide-react";
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import confetti from "canvas-confetti";
 import NumberFlow from "@number-flow/react";
 import { useAuth } from "@/hooks/use-auth";
+import { useCountry } from "@/components/country-provider";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createCheckoutSession, verifySubscription } from "@/lib/auth/actions";
 
@@ -115,43 +126,50 @@ interface PricingSectionProps {
   hideIfPurchased?: boolean;
 }
 
-export function PricingSection({ hideIfPurchased }: PricingSectionProps = {}) {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "quarterly" | "yearly">("monthly");
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-  const { user, refreshSession } = useAuth();
-  const router = useRouter();
+function PaymentSuccessHandler() {
   const searchParams = useSearchParams();
-  const [isCheckingOut, setIsCheckingOut] = useState<string | null>(null);
+  const { refreshSession } = useAuth();
+  const router = useRouter();
   const hasFiredSuccess = useRef(false);
 
   useEffect(() => {
     const handleSuccess = async () => {
-        if (searchParams.get("success") === "true" && !hasFiredSuccess.current) {
-            hasFiredSuccess.current = true;
-            
-            // If returning from Dodo Payments with a subscription_id, verify it immediately
-            const subId = searchParams.get("subscription_id");
-            if (subId) {
-                await verifySubscription(subId);
-            }
+      if (searchParams.get("success") === "true" && !hasFiredSuccess.current) {
+        hasFiredSuccess.current = true;
 
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
-            
-            if (refreshSession) {
-                refreshSession();
-            }
-            
-            // Clean up the URL
-            router.replace("/pricing");
+        // If returning from Dodo Payments with a subscription_id, verify it immediately
+        const subId = searchParams.get("subscription_id");
+        if (subId) {
+          await verifySubscription(subId);
         }
+
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+
+        if (refreshSession) {
+          refreshSession();
+        }
+
+        // Clean up the URL
+        router.replace("/pricing");
+      }
     };
-    
+
     handleSuccess();
   }, [searchParams, refreshSession, router]);
+
+  return null;
+}
+
+export function PricingSection({ hideIfPurchased }: PricingSectionProps = {}) {
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "quarterly" | "yearly">("monthly");
+  const { user } = useAuth();
+  const { getRawPrice, currencySymbol } = useCountry();
+  const router = useRouter();
+  const [isCheckingOut, setIsCheckingOut] = useState<string | null>(null);
 
   const handleCheckout = async (planName: string) => {
     if (!user) {
@@ -183,8 +201,12 @@ export function PricingSection({ hideIfPurchased }: PricingSectionProps = {}) {
   }
 
   return (
-    <section id="pricing" className="py-20 md:py-32 bg-background relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-zinc-500/10 blur-[120px] rounded-full pointer-events-none" />
+    <>
+      <Suspense fallback={null}>
+        <PaymentSuccessHandler />
+      </Suspense>
+      <section id="pricing" className="py-20 md:py-32 bg-background relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[radial-gradient(circle,rgba(161,161,170,0.08)_0%,transparent_70%)] pointer-events-none" />
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center space-y-4 mb-12">
           <h2 className="text-4xl font-black tracking-tight sm:text-5xl">
@@ -203,20 +225,20 @@ export function PricingSection({ hideIfPurchased }: PricingSectionProps = {}) {
                 handleToggle(cycle);
                 if (cycle === "yearly") {
                   confetti({
-                    particleCount: 50,
-                    spread: 60,
+                    particleCount: 30,
+                    spread: 50,
                     origin: { y: 0.6 },
+                    disableForReducedMotion: true,
                     colors: [
                       "hsl(var(--primary))",
                       "hsl(var(--accent))",
                       "hsl(var(--secondary))",
-                      "hsl(var(--muted))",
                     ],
                   });
                 }
               }}
               className={cn(
-                "relative px-6 py-2.5 text-sm font-medium rounded-full transition-all duration-300 capitalize flex items-center",
+                "relative px-6 py-2.5 text-sm font-medium rounded-full transition-colors duration-200 capitalize flex items-center",
                 billingCycle === cycle
                   ? "text-white"
                   : "text-muted-foreground hover:text-white"
@@ -226,7 +248,7 @@ export function PricingSection({ hideIfPurchased }: PricingSectionProps = {}) {
                 <motion.div
                   layoutId="billing-pill"
                   className="absolute inset-0 bg-primary border border-primary rounded-full"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  transition={{ type: "spring", bounce: 0.15, duration: 0.35 }}
                 />
               )}
               <span className="relative z-10 flex items-center gap-1.5">
@@ -245,37 +267,21 @@ export function PricingSection({ hideIfPurchased }: PricingSectionProps = {}) {
         <div className="grid grid-cols-1 md:grid-cols-3 sm:2 gap-4 max-w-6xl mx-auto">
           {postpipePlans.map((plan, index) => (
             <motion.div
-              key={index}
-              initial={{ y: 50, opacity: 1 }}
-              whileInView={
-                isDesktop
-                  ? {
-                      y: plan.isPopular ? -20 : 0,
-                      opacity: 1,
-                      x: index === 2 ? -30 : index === 0 ? 30 : 0,
-                      scale: index === 0 || index === 2 ? 0.94 : 1.0,
-                    }
-                  : {}
-              }
+              key={plan.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{
-                duration: 1.6,
-                type: "spring",
-                stiffness: 100,
-                damping: 30,
-                delay: 0.4,
-                opacity: { duration: 0.5 },
+                duration: 0.4,
+                ease: [0.25, 0.1, 0.25, 1],
+                delay: index * 0.08,
               }}
               className={cn(
-                `rounded-[2rem] border p-8 xl:p-10 bg-background/80 backdrop-blur-xl text-center lg:flex lg:flex-col lg:justify-center relative transition-all`,
-                plan.isPopular ? "border-zinc-500/50 shadow-2xl shadow-white/5 ring-1 ring-zinc-500/20" : "border-border/50 hover:bg-card/40",
-                "flex flex-col",
-                !plan.isPopular && "mt-5",
-                index === 0 || index === 2
-                  ? "z-0 transform translate-x-0 translate-y-0 -translate-z-[50px] rotate-y-[10deg]"
-                  : "z-10",
-                index === 0 && "origin-right",
-                index === 2 && "origin-left"
+                "rounded-[2rem] border p-8 xl:p-10 bg-card/90 backdrop-blur-md text-center flex flex-col justify-between relative transition-colors duration-200",
+                plan.isPopular 
+                  ? "border-zinc-500/50 shadow-2xl shadow-primary/5 ring-1 ring-zinc-500/20 md:-translate-y-4 z-10" 
+                  : "border-border/60 hover:bg-card/70 z-0",
+                !plan.isPopular && "mt-0 md:mt-4"
               )}
             >
               {plan.isPopular && (
@@ -305,22 +311,21 @@ export function PricingSection({ hideIfPurchased }: PricingSectionProps = {}) {
                     <div className="flex items-end gap-2 flex-wrap justify-center">
                         {plan.prices[billingCycle] !== "0" && (
                              <span className="text-lg text-muted-foreground line-through decoration-muted-foreground/50 leading-none mb-1">
-                                 ₹{Math.round(Number(plan.prices[billingCycle]) * 1.48)}
+                                 {currencySymbol}{Math.round(getRawPrice(plan.prices[billingCycle]) * 1.48)}
                              </span>
                         )}
                         <span className="text-4xl lg:text-5xl font-black tracking-tight text-foreground flex items-center leading-none">
-                            <span className="text-2xl mr-1">₹</span>
+                            <span className="text-2xl mr-1">{currencySymbol}</span>
                             <NumberFlow
-                                value={Number(plan.prices[billingCycle])}
+                                value={getRawPrice(plan.prices[billingCycle])}
                                 format={{
                                   minimumFractionDigits: 0,
                                   maximumFractionDigits: 0,
                                 }}
                                 transformTiming={{
-                                  duration: 500,
-                                  easing: "ease-out",
+                                  duration: 280,
+                                  easing: "cubic-bezier(0.25, 0.1, 0.25, 1)",
                                 }}
-                                willChange
                                 className="font-variant-numeric: tabular-nums leading-none"
                             />
                         </span>
@@ -383,7 +388,87 @@ export function PricingSection({ hideIfPurchased }: PricingSectionProps = {}) {
             </motion.div>
           ))}
         </div>
+
+        {/* ─── Billing Terms & Conditions / Service Continuity Policy ─── */}
+        <div className="mt-16 max-w-6xl mx-auto space-y-6">
+          {/* Prominent Warning Callout */}
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/[0.04] p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden">
+            <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-[radial-gradient(circle,rgba(245,158,11,0.12)_0%,transparent_70%)] pointer-events-none" />
+            <div className="flex flex-col sm:flex-row items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 mt-0.5">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div className="space-y-2.5 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="text-base sm:text-lg font-bold text-foreground">
+                    Subscription & Billing Terms Notice
+                  </h4>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                    Important Clause
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  All recurring subscription payments are debited automatically on the <strong className="text-foreground font-semibold">1st of each calendar month</strong>. In the event that an automated debit fails or payment cannot be processed, your paid subscription tier will be <strong className="text-foreground font-semibold">revoked immediately</strong> and your account will automatically revert to the <strong className="text-foreground font-semibold">Starter Plan</strong>.
+                </p>
+                <div className="flex items-start sm:items-center gap-2 pt-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                  <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5 sm:mt-0" />
+                  <span>
+                    <strong>Uninterrupted Service Continuity:</strong> Downgrading never terminates your active pipeline. You can continue utilizing Postpipe with all features included under the Starter plan (up to 1,000 monthly submissions and 2 database connectors) without loss of data.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detailed Clauses Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="rounded-xl border border-border/70 bg-card/60 p-5 backdrop-blur-sm space-y-2.5">
+              <div className="flex items-center gap-2 text-foreground font-semibold text-sm">
+                <Calendar className="h-4 w-4 text-primary" />
+                <span>1st of the Month Billing</span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Billing periods renew on the 1st of every calendar month. Digital VAT and GST-compliant invoices and payment receipts are issued directly to your account email upon every successful transaction.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-border/70 bg-card/60 p-5 backdrop-blur-sm space-y-2.5">
+              <div className="flex items-center gap-2 text-foreground font-semibold text-sm">
+                <RefreshCcw className="h-4 w-4 text-primary" />
+                <span>Debit Failure Protocol</span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                If bank debiting or card collection fails, tier throughput adjusts immediately to Starter limits. Retrying payment or updating billing credentials from your profile restores Builder entitlements instantly.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-border/70 bg-card/60 p-5 backdrop-blur-sm space-y-2.5">
+              <div className="flex items-center gap-2 text-foreground font-semibold text-sm">
+                <CreditCard className="h-4 w-4 text-primary" />
+                <span>Cancellation & Retention</span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                You retain complete control to cancel anytime via your Account Profile. Paid benefits remain active through the final day of your paid cycle. All schemas and form webhook tokens remain safe.
+              </p>
+            </div>
+          </div>
+
+          {/* Support & Invoicing Inquiries */}
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 rounded-xl border border-border/60 bg-muted/20 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-primary" />
+              <span>Need custom enterprise SLAs or enterprise invoicing?</span>
+            </div>
+            <a 
+              href="mailto:support@postpipe.in" 
+              className="font-medium text-foreground hover:text-primary transition-colors underline underline-offset-4"
+            >
+              Contact Support (support@postpipe.in) →
+            </a>
+          </div>
+        </div>
       </div>
     </section>
+    </>
   );
 }

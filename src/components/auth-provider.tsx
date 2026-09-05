@@ -7,6 +7,8 @@ import { signOut } from "@/lib/auth/actions";
 const AUTH_COOKIE_NAME = "postpipe_auth";
 
 type User = {
+  id?: string;
+  _id?: string;
   name: string;
   email: string;
   image?: string;

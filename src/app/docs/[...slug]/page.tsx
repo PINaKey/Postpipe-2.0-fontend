@@ -22,21 +22,9 @@ export async function generateMetadata({ params }: DocPageProps): Promise<Metada
   };
 }
 
-// Remove emoji characters from a string
-function stripEmojis(str: string): string {
-  return str
-    .replace(
-      /[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2300}-\u{23FF}\u{2B00}-\u{2BFF}\u{1F900}-\u{1F9FF}]|\u{FE0F}|\u{20E3}/gu,
-      ""
-    )
-    .replace(/^\s+/, "")
-    .trim();
-}
-
-function cleanNode(child: React.ReactNode): React.ReactNode {
-  if (typeof child === "string") return stripEmojis(child);
-  if (Array.isArray(child)) return child.map(cleanNode);
-  return child;
+// Helper to convert to title case
+function toTitleCase(str: string) {
+  return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
 }
 
 export default async function DocPage({ params }: DocPageProps) {
@@ -51,36 +39,36 @@ export default async function DocPage({ params }: DocPageProps) {
     <div className="py-10 max-w-4xl">
       {/* Breadcrumb */}
       {!isIntro && (
-        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-6">
+        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-8">
           <Link href="/docs/introduction" className="hover:text-foreground transition-colors">
             Docs
           </Link>
-          <ChevronRight size={12} />
-          <span className="text-foreground">{doc.frontmatter.title}</span>
+          <ChevronRight size={14} />
+          <span className="text-foreground font-medium">{toTitleCase(doc.frontmatter.title || "")}</span>
         </nav>
       )}
 
       {/* Page Header */}
-      <header className="mb-8 pb-6 border-b border-border">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">
-          {doc.frontmatter.title || "Documentation"}
+      <header className="mb-10 pb-8 border-b border-border/50">
+        <h1 className="text-4xl font-extrabold tracking-tight text-foreground mb-3">
+          {toTitleCase(doc.frontmatter.title || "Documentation")}
         </h1>
         {doc.frontmatter.description && (
-          <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+          <p className="text-lg text-muted-foreground leading-relaxed mt-2 max-w-3xl">
             {doc.frontmatter.description}
           </p>
         )}
         {isIntro && (
-          <div className="flex gap-3 mt-5">
+          <div className="flex gap-4 mt-6">
             <Link
               href="/docs/guides/static-connector"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-5 transition-colors"
+              className="inline-flex items-center justify-center rounded-lg text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 shadow-sm transition-colors"
             >
               Static Setup
             </Link>
             <Link
               href="/docs/guides/cli-components"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-border bg-transparent text-foreground hover:bg-muted h-9 px-5 transition-colors"
+              className="inline-flex items-center justify-center rounded-lg text-sm font-semibold border border-border bg-card text-foreground hover:bg-muted h-10 px-6 shadow-sm transition-colors"
             >
               Forge CLI
             </Link>
@@ -89,54 +77,53 @@ export default async function DocPage({ params }: DocPageProps) {
       </header>
 
       {/* Markdown Body */}
-      <div className="prose prose-sm max-w-none dark:prose-invert
+      <div className="prose prose-base max-w-none dark:prose-invert
         prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-foreground prose-headings:scroll-mt-24
-        prose-h2:text-lg prose-h2:mt-10 prose-h2:mb-3 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border
-        prose-h3:text-base prose-h3:mt-6 prose-h3:mb-2
-        prose-p:text-muted-foreground prose-p:leading-7 prose-p:my-3
+        prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border/50
+        prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4
+        prose-p:text-muted-foreground prose-p:leading-7 prose-p:my-5
         prose-a:text-primary prose-a:no-underline prose-a:font-medium hover:prose-a:underline
         prose-strong:text-foreground prose-strong:font-semibold
         prose-em:text-muted-foreground
-        prose-ul:my-3 prose-li:my-0.5 prose-li:text-muted-foreground
-        prose-ol:my-3
-        prose-code:text-[0.82em] prose-code:font-mono prose-code:bg-muted prose-code:text-primary prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none
-        prose-pre:bg-[#0a0a0a] prose-pre:border prose-pre:border-border prose-pre:rounded-xl prose-pre:p-5 prose-pre:my-5 prose-pre:overflow-x-auto prose-pre:text-[0.82em]
-        prose-blockquote:border-l-2 prose-blockquote:border-primary/60 prose-blockquote:pl-4 prose-blockquote:text-muted-foreground prose-blockquote:not-italic prose-blockquote:my-4
-        prose-table:text-sm prose-th:text-foreground prose-th:font-semibold prose-td:text-muted-foreground prose-thead:border-border prose-tbody:border-border
-        prose-hr:border-border prose-hr:my-6
-        [&_hr]:my-6
+        prose-ul:my-5 prose-li:my-1.5 prose-li:text-muted-foreground
+        prose-ol:my-5
+        prose-code:text-[0.85em] prose-code:font-mono prose-code:bg-muted/50 prose-code:text-foreground prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none
+        prose-pre:bg-[#09090b] prose-pre:border prose-pre:border-border/40 prose-pre:rounded-xl prose-pre:p-5 prose-pre:my-6 prose-pre:overflow-x-auto prose-pre:text-[0.85em]
+        prose-blockquote:border-l-4 prose-blockquote:border-primary/50 prose-blockquote:pl-5 prose-blockquote:text-muted-foreground prose-blockquote:not-italic prose-blockquote:my-6
+        prose-table:text-sm prose-th:text-foreground prose-th:font-semibold prose-th:border-b prose-th:border-border prose-th:pb-3 prose-td:text-muted-foreground prose-td:border-b prose-td:border-border/50 prose-td:py-3
+        [&_hr]:border-border/50 [&_hr]:my-8
       ">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
-            h1: ({ children }) => <h1>{cleanNode(children)}</h1>,
-            h2: ({ children }) => <h2>{cleanNode(children)}</h2>,
-            h3: ({ children }) => <h3>{cleanNode(children)}</h3>,
-            h4: ({ children }) => <h4>{cleanNode(children)}</h4>,
+            h1: ({ children }) => <h1>{children}</h1>,
+            h2: ({ children }) => <h2>{children}</h2>,
+            h3: ({ children }) => <h3>{children}</h3>,
+            h4: ({ children }) => <h4>{children}</h4>,
             // Clean task-list item rendering
             li: ({ children, className, ...props }: any) => {
               const isTask = className?.includes("task-list-item");
               if (isTask) {
                 return (
-                  <li className="!list-none flex items-start gap-2 !pl-0 !ml-0" {...props}>
+                  <li className="!list-none flex items-start gap-3 !pl-0 !ml-0 my-2 [&>p]:m-0 [&>p]:leading-relaxed" {...props}>
                     {children}
                   </li>
                 );
               }
-              return <li {...props}>{children}</li>;
+              return <li className={className} {...props}>{children}</li>;
             },
             // Replace raw checkbox inputs with styled spans
             input: ({ type, checked }: any) => {
               if (type !== "checkbox") return null;
               return (
                 <span
-                  className={`inline-flex items-center justify-center w-4 h-4 rounded-[4px] border shrink-0 mt-0.5 ${
+                  className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] border shrink-0 mt-[3px] ${
                     checked
-                      ? "bg-primary border-primary"
-                      : "border-muted-foreground/40 bg-muted"
+                      ? "bg-primary border-primary text-primary-foreground"
+                      : "border-input bg-transparent"
                   }`}
                 >
-                  {checked && <Check size={9} className="text-primary-foreground" strokeWidth={3} />}
+                  {checked && <Check size={12} strokeWidth={3} />}
                 </span>
               );
             },

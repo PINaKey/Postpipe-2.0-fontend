@@ -1,195 +1,214 @@
 "use client";
 
-import React, { useRef } from "react";
-import { motion, useInView } from "framer-motion";
-import { Database, Zap, Globe } from "lucide-react";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { 
+  Database, 
+  Code2, 
+  ShieldCheck, 
+  Check, 
+  Copy,
+  ArrowRight
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const steps = [
-  {
-    step: "01",
-    icon: Database,
-    title: "Connect Your Database",
-    description:
-      "Provide your existing MongoDB or PostgreSQL credentials. PostPipe generates a secure, signed API endpoint in seconds — no backend code required.",
-    color: "text-blue-400",
-    glowColor: "bg-blue-500/10",
-    accentRgb: "59, 130, 246",
-    connectorColor: "#3b82f6",
-    code: `// postpipe.config.js\ndb: "mongodb+srv://...",\nkey: process.env.PP_KEY`,
-  },
-  {
-    step: "02",
-    icon: Zap,
-    title: "Embed the Form Snippet",
-    description:
-      "Copy a single HTML/JS snippet and drop it anywhere — a React app, a plain HTML page, Webflow, or WordPress. Zero dependencies.",
-    color: "text-violet-400",
-    glowColor: "bg-violet-500/10",
-    accentRgb: "139, 92, 246",
-    connectorColor: "#8b5cf6",
-    code: `<!-- Paste anywhere -->\n<script src="pp.js"></script>\n<form data-pp="my-form">`,
-  },
-  {
-    step: "03",
-    icon: Globe,
-    title: "Receive Verified Data",
-    description:
-      "Every submission is cryptographically signed and validated before it reaches your database. Your data, your control.",
-    color: "text-emerald-400",
-    glowColor: "bg-emerald-500/10",
-    accentRgb: "16, 185, 129",
-    connectorColor: "#10b981",
-    code: `// Received & verified\n{\n  "email": "user@example.com",\n  "verified": true\n}`,
-  },
-];
-
-function AnimatedConnector({ color, delay }: { color: string; delay: number }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
-
-  return (
-    <div ref={ref} className="hidden lg:flex items-center justify-center w-20 shrink-0 mt-[60px]">
-      <svg width="80" height="12" viewBox="0 0 80 12" fill="none">
-        {/* Static track */}
-        <line x1="0" y1="6" x2="80" y2="6" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-        {/* Animated fill */}
-        <motion.line
-          x1="0"
-          y1="6"
-          x2="80"
-          y2="6"
-          stroke={color}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={isInView ? { pathLength: 1, opacity: 1 } : {}}
-          transition={{ duration: 0.7, delay, ease: "easeOut" }}
-          style={{ pathLength: 0 }}
-        />
-        {/* Arrow head dot */}
-        <motion.circle
-          cx="76"
-          cy="6"
-          r="3"
-          fill={color}
-          initial={{ scale: 0, opacity: 0 }}
-          animate={isInView ? { scale: 1, opacity: 1 } : {}}
-          transition={{ delay: delay + 0.7, duration: 0.25 }}
-        />
-      </svg>
-    </div>
-  );
-}
-
-function StepCard({ step, idx, isInView }: { step: typeof steps[0]; idx: number; isInView: boolean }) {
-  const Icon = step.icon;
-
-  return (
-    <motion.div
-      className="relative flex flex-col w-full lg:max-w-[300px] rounded-2xl overflow-hidden"
-      initial={{ opacity: 0, y: 28 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.5, delay: idx * 0.15 }}
-    >
-      {/* Animated border via box-shadow + pseudo */}
-      <motion.div
-        className="absolute inset-0 rounded-2xl pointer-events-none z-10"
-        style={{ boxShadow: `0 0 0 1px rgba(${step.accentRgb}, 0.15)` }}
-        animate={{
-          boxShadow: [
-            `0 0 0 1px rgba(${step.accentRgb}, 0.1)`,
-            `0 0 0 1px rgba(${step.accentRgb}, 0.4), 0 0 20px rgba(${step.accentRgb}, 0.08)`,
-            `0 0 0 1px rgba(${step.accentRgb}, 0.1)`,
-          ],
-        }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: idx * 0.6 }}
-      />
-
-      <div className="relative bg-card/60 backdrop-blur-sm p-6 h-full flex flex-col">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-5">
-          <div className={`w-9 h-9 rounded-xl ${step.glowColor} flex items-center justify-center shrink-0`}>
-            <Icon className={`h-4 w-4 ${step.color}`} />
-          </div>
-          <span className="text-[10px] font-mono font-bold tracking-widest text-muted-foreground uppercase">
-            Step {step.step}
-          </span>
-        </div>
-
-        <h3 className="text-sm font-bold text-foreground mb-2 leading-snug">{step.title}</h3>
-        <p className="text-xs text-muted-foreground leading-relaxed mb-5 flex-1">{step.description}</p>
-
-        {/* Code window */}
-        <div className="rounded-lg bg-[#080808] border border-white/5 p-3">
-          <div className="flex gap-1.5 mb-2.5">
-            <span className="w-2 h-2 rounded-full bg-red-500/50" />
-            <span className="w-2 h-2 rounded-full bg-yellow-500/50" />
-            <span className="w-2 h-2 rounded-full bg-emerald-500/50" />
-          </div>
-          <motion.pre
-            className={`text-[10px] font-mono ${step.color} leading-relaxed whitespace-pre`}
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.5 + idx * 0.15, duration: 0.5 }}
-          >
-            {step.code}
-          </motion.pre>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+type FrameworkTab = "html" | "react" | "webflow";
 
 export function HowItWorks() {
-  const sectionRef = useRef(null);
-  const isInView = useInView(sectionRef, { once: true, margin: "-80px" });
+  const [activeTab, setActiveTab] = useState<FrameworkTab>("html");
+  const [copiedStep, setCopiedStep] = useState<number | null>(null);
+
+  const handleCopy = (text: string, stepIndex: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedStep(stepIndex);
+    setTimeout(() => {
+      setCopiedStep(null);
+    }, 2000);
+  };
+
+  const step1Code = `// postpipe.config.ts
+export default defineConfig({
+  connector: "postgresql", // or "mongodb"
+  connectionString: process.env.DATABASE_URL,
+  tables: ["contacts", "leads"],
+  zeroTrust: true,
+  rateLimit: "100/min"
+});`;
+
+  const step2CodeMap: Record<FrameworkTab, string> = {
+    html: `<!-- Drop into any HTML page -->
+<form data-postpipe="contacts" method="POST">
+  <input type="email" name="email" required />
+  <button type="submit">Submit</button>
+</form>
+<script src="https://postpipe.in/pp.js" async></script>`,
+    react: `// React & Next.js Hook
+import { usePostPipe } from "@postpipe/react";
+
+export function ContactForm() {
+  const { submit, isSubmitting } = usePostPipe("contacts");
+  return (
+    <form onSubmit={submit}>
+      <input type="email" name="email" required />
+      <button disabled={isSubmitting}>Submit</button>
+    </form>
+  );
+}`,
+    webflow: `<!-- Webflow / Framer / WordPress -->
+Action URL: https://api.postpipe.in/v1/submit/contacts
+Method: POST
+Signature Check: Automatic
+Redirect: /thank-you`,
+  };
+
+  const step3Code = `// Cryptographically signed & verified
+{
+  "status": "verified_200",
+  "signature": "hmac_sha256_9f8a2c...",
+  "destination": "postgresql://contacts",
+  "data": {
+    "email": "alex@acme.corp",
+    "verified": true,
+    "receivedAt": "2026-09-05T11:04:21Z"
+  }
+}`;
 
   return (
-    <section id="how-it-works" className="py-16 px-4 bg-background" ref={sectionRef}>
-      {/* Rounded outer container — near full width */}
-      <div className="max-w-7xl mx-auto rounded-3xl border border-border/50 bg-card/20 overflow-hidden relative">
-        {/* Subtle inner grid */}
-        <div
-          className="absolute inset-0 opacity-[0.025] pointer-events-none"
-          style={{
-            backgroundImage:
-              "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
+    <section id="how-it-works" className="py-24 px-4 bg-background border-t border-white/5">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground mb-4">
+            How PostPipe Works
+          </h2>
+          <p className="text-muted-foreground text-base sm:text-lg">
+            Connect your database and start capturing form submissions in minutes. 
+            No complex backend setups or DevOps required.
+          </p>
+        </div>
 
-        <div className="relative z-10 px-8 py-14">
-          {/* Header */}
-          <motion.div
-            className="text-center mb-14"
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.45 }}
-          >
-            <span className="inline-block text-[10px] font-bold tracking-widest uppercase text-primary mb-3">
-              Simple by Design
-            </span>
-            <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-3">
-              Up and running in three steps
-            </h2>
-            <p className="text-muted-foreground text-base max-w-md mx-auto">
-              No dedicated backend. No DevOps. No surprises.
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* STEP 1 */}
+          <div className="flex flex-col rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Database className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <div className="text-sm font-medium text-muted-foreground">Step 1</div>
+                <h3 className="font-semibold text-foreground">Connect Database</h3>
+              </div>
+            </div>
+            
+            <p className="text-sm text-muted-foreground mb-6 flex-grow">
+              Provide your database credentials. We securely pool connections and provision isolated endpoints.
             </p>
-          </motion.div>
 
-          {/* Steps */}
-          <div className="flex flex-col lg:flex-row items-stretch justify-center gap-0">
-            {steps.map((step, idx) => (
-              <React.Fragment key={step.step}>
-                <StepCard step={step} idx={idx} isInView={isInView} />
-                {idx < steps.length - 1 && (
-                  <AnimatedConnector color={steps[idx + 1].connectorColor} delay={0.3 + idx * 0.2} />
-                )}
-              </React.Fragment>
-            ))}
+            <div className="rounded-lg border border-border bg-zinc-950 overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-white/5">
+                <span className="text-xs font-mono text-muted-foreground">postpipe.config.ts</span>
+                <button
+                  onClick={() => handleCopy(step1Code, 1)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  title="Copy snippet"
+                >
+                  {copiedStep === 1 ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                </button>
+              </div>
+              <pre className="p-4 text-xs font-mono text-zinc-300 overflow-x-auto">
+                <code>{step1Code}</code>
+              </pre>
+            </div>
           </div>
+
+          {/* STEP 2 */}
+          <div className="flex flex-col rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Code2 className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <div className="text-sm font-medium text-muted-foreground">Step 2</div>
+                <h3 className="font-semibold text-foreground">Embed Snippet</h3>
+              </div>
+            </div>
+            
+            <p className="text-sm text-muted-foreground mb-6">
+              Drop our snippet into any framework or platform. Zero client dependencies required.
+            </p>
+
+            <div className="flex items-center gap-1 mb-4 p-1 rounded-md bg-muted">
+              {(["html", "react", "webflow"] as FrameworkTab[]).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={cn(
+                    "flex-1 text-xs py-1.5 px-2 rounded-sm font-medium transition-all capitalize",
+                    activeTab === tab 
+                      ? "bg-background text-foreground shadow-sm" 
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {tab === "react" ? "React" : tab}
+                </button>
+              ))}
+            </div>
+
+            <div className="rounded-lg border border-border bg-zinc-950 overflow-hidden mt-auto">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-white/5">
+                <span className="text-xs font-mono text-muted-foreground">
+                  {activeTab === "html" ? "index.html" : activeTab === "react" ? "ContactForm.tsx" : "webflow.config"}
+                </span>
+                <button
+                  onClick={() => handleCopy(step2CodeMap[activeTab], 2)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  title="Copy snippet"
+                >
+                  {copiedStep === 2 ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                </button>
+              </div>
+              <pre className="p-4 text-xs font-mono text-zinc-300 overflow-x-auto min-h-[160px]">
+                <code>{step2CodeMap[activeTab]}</code>
+              </pre>
+            </div>
+          </div>
+
+          {/* STEP 3 */}
+          <div className="flex flex-col rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <div className="text-sm font-medium text-muted-foreground">Step 3</div>
+                <h3 className="font-semibold text-foreground">Receive Verified Data</h3>
+              </div>
+            </div>
+            
+            <p className="text-sm text-muted-foreground mb-6 flex-grow">
+              Submissions are cryptographically signed before direct insertion into your database.
+            </p>
+
+            <div className="rounded-lg border border-border bg-zinc-950 overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-white/5">
+                <span className="text-xs font-mono text-muted-foreground">payload.json</span>
+                <button
+                  onClick={() => handleCopy(step3Code, 3)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  title="Copy snippet"
+                >
+                  {copiedStep === 3 ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                </button>
+              </div>
+              <pre className="p-4 text-xs font-mono text-zinc-300 overflow-x-auto">
+                <code>{step3Code}</code>
+              </pre>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
   );
 }
+

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Mail, Instagram, Github, Coffee } from "lucide-react";
 import { AnimatedWords } from "../ui/animated-words";
 import { WordRotate } from "@/components/ui/word-rotate";
+import { CountrySelector } from "@/components/country-selector";
 
 const productLinks = [
     { href: "/login", label: "Product" },
@@ -158,9 +159,12 @@ export function AppFooter() {
 
                 {/* Bottom divider + legal */}
                 <div className="border-t border-border/50 pt-8 mb-16 md:mb-24 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p className="text-xs text-muted-foreground/50">
-                        © {new Date().getFullYear()} Postpipe. Built with ❤️ in India.
-                    </p>
+                    <div className="flex items-center gap-6">
+                        <p className="text-xs text-muted-foreground/50">
+                            © {new Date().getFullYear()} Postpipe. Built with ❤️ in India.
+                        </p>
+                        <CountrySelector />
+                    </div>
                     <p className="text-xs text-muted-foreground/40">
                         Maintained by Sourodip &amp; Pinaki
                     </p>

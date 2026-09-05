@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -170,7 +171,9 @@ export default function Home() {
         <Marquee text="Scale Infinite • Zero Infrastructure • PostPipe • " repeat={4} duration={40} fontSize="xl" />
       </div>
 
-      <PricingSection hideIfPurchased={true} />
+      <Suspense fallback={null}>
+        <PricingSection hideIfPurchased={true} />
+      </Suspense>
       <section id="faq" className="bg-background py-20 md:py-32">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="mb-12 text-center">

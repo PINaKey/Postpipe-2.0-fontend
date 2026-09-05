@@ -43,7 +43,7 @@ export default function DocsShell({ children }: { children: React.ReactNode }) {
         <nav className="py-8 space-y-6">
           {navSections.map((section) => (
             <div key={section.label}>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 px-2">
+              <p className="text-xs font-semibold text-foreground mb-3 px-2">
                 {section.label}
               </p>
               <ul className="space-y-px">
@@ -55,16 +55,16 @@ export default function DocsShell({ children }: { children: React.ReactNode }) {
                       <Link
                         href={item.href}
                         className={cn(
-                          "flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors",
+                          "flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors",
                           isActive
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                            ? "bg-muted font-medium text-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                         )}
                       >
                         <Icon
                           className={cn(
-                            "h-3.5 w-3.5 shrink-0",
-                            isActive ? "text-primary" : "text-muted-foreground"
+                            "h-4 w-4 shrink-0",
+                            isActive ? "text-foreground" : "text-muted-foreground"
                           )}
                         />
                         {item.label}
